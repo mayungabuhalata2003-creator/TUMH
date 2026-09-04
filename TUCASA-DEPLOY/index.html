@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TUCASA UDSM MABIBO HOSTEL(TUMH) — Usajili wa Wanachama</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0a3d2e">
+
+<!-- ============ CDN ZINAZOTUMIKA ============
+     Chart.js   -> takwimu za Dashboard (Pie/Bar)
+     html2canvas-> kuzalisha E-Card kama picha inayoweza kupakuliwa
+     SweetAlert2-> pop-up nzuri ya "Umesajiliwa"
+     qrcode.js  -> kuzalisha QR Code kwenye E-Card
+============================================= -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ===================== TOKENS / MSINGI ===================== */
+:root{
+  --green-dark:#0a3d2e;
+  --green-light:#1a7a5a;
+  --green-pale:#e9f5ef;
+  --gold:#FFD700;
+  --gold-deep:#c9a800;
+  --ink:#0e2620;
+  --paper:#ffffff;
+  --line:#d8e6df;
+  --danger:#c0392b;
+  --radius:14px;
+  --shadow:0 20px 60px -20px rgba(10,61,46,.45);
+  font-size:16px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  background:
+    radial-gradient(1100px 700px at 8% -10%, #2fae7b33, transparent 60%),
+    radial-gradient(900px 700px at 110% 10%, #ffd70022, transparent 55%),
+    linear-gradient(160deg,var(--green-dark) 0%, #0f4a38 45%, var(--green-light) 100%);
+  background-attachment:fixed;
+}
+h1,h2,h3,.brand,.section-title{font-family:'Sora',sans-serif;}
+.hidden{display:none !important;}
+button{font-family:inherit;cursor:pointer;}
+::selection{background:var(--gold);color:var(--green-dark);}
+
+/* focus visibility */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid var(--gold); outline-offset:2px;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+
+/* ===================== TOPBAR ===================== */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px clamp(16px,4vw,48px);
+  color:#eafff4;
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;}
+.crest{
+  width:44px;height:44px;border-radius:50%;
+  background:conic-gradient(from 220deg, var(--gold), var(--green-light), var(--gold));
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 44px;
+  font-weight:800;color:var(--green-dark);font-size:15px;
+  box-shadow:0 6px 16px rgba(0,0,0,.25);
+}
+.crest img{width:100%;height:100%;object-fit:cover;display:block;}
+.brand-text{min-width:0;}
+.brand-text b{display:block;font-size:17px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.brand-text span{display:block;font-size:12px;color:#bfe6d4;}
+.nav-tabs{display:flex;gap:6px;background:rgba(255,255,255,.08);padding:5px;border-radius:999px;backdrop-filter:blur(6px);}
+.nav-tabs button{
+  border:none;background:transparent;color:#eafff4;padding:9px 18px;border-radius:999px;
+  font-weight:600;font-size:14px;transition:transform .15s ease, background .15s ease;
+}
+.nav-tabs button.active{background:var(--gold);color:var(--green-dark);}
+.nav-tabs .nav-admin-hidden{opacity:0.18; pointer-events:none; filter:grayscale(.35);}
+.admin-access-trigger{
+  align-self:center; margin-top:10px; border:none; background:transparent;
+  color:rgba(10,61,46,.7); padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; cursor:pointer; opacity:.72; transition:all .15s ease;
+}
+.admin-access-trigger:hover,.admin-access-trigger:focus-visible{
+  background:rgba(13,86,67,.08); opacity:1; color:var(--green-dark);
+  box-shadow:0 0 0 3px rgba(26,122,90,.08);
+}
+.login-actions{display:flex;flex-direction:column;gap:8px;}
+
+.nav-tabs button:hover{transform:translateY(-1px);}
+
+/* ===================== SHELL / CARD ===================== */
+.shell{max-width:1180px;margin:0 auto;padding:8px clamp(16px,4vw,48px) 64px;}
+.glass-card{
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(255,255,255,.5);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  padding:clamp(20px,4vw,40px);
+}
+
+/* ===================== PROGRESS ===================== */
+.progress-wrap{margin-bottom:28px;}
+.progress-track{
+  position:relative;height:6px;border-radius:999px;background:var(--green-pale);overflow:hidden;
+}
+.progress-fill{
+  position:absolute;left:0;top:0;bottom:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--green-light),var(--gold));
+  transition:width .35s ease;
+}
+.progress-steps{display:flex;justify-content:space-between;margin-top:12px;}
+.pstep{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;font-size:12px;color:#7c9a8d;position:relative;}
+.pstep .dot{
+  width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-weight:700;color:#7c9a8d;font-size:13px;
+  transition:all .2s ease;
+}
+.pstep.active .dot{border-color:var(--green-light);color:var(--green-dark);box-shadow:0 0 0 5px var(--green-pale);}
+.pstep.done .dot{background:var(--green-light);border-color:var(--green-light);color:#fff;}
+.pstep.active span.label{color:var(--green-dark);font-weight:700;}
+
+/* ===================== FORM SECTIONS ===================== */
+.section-title{font-size:20px;color:var(--green-dark);margin:0 0 4px;}
+.section-sub{color:#5f7d70;font-size:13.5px;margin:0 0 22px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;}
+@media (max-width:680px){
+  .grid-2{grid-template-columns:1fr;}
+  .radio-row{grid-template-columns:1fr;}
+  .cam-box{flex-direction:column;align-items:stretch;}
+  .cam-actions{min-width:100%;}
+  .cam-frame{width:100%;max-width:240px;margin:0 auto;}
+  .form-nav{flex-direction:column;gap:12px;}
+  .form-nav .btn{width:100%;}
+  .progress-steps{gap:8px;flex-wrap:wrap;justify-content:center;}
+  .pstep{min-width:90px;flex:1 1 30%;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:12px;}
+  .brand{width:100%;}
+}
+
+.field{position:relative;}
+.field.full{grid-column:1/-1;}
+.field input[type=text],
+.field input[type=tel],
+.field input[type=email],
+.field input[type=date],
+.field select,
+.field textarea{
+  width:100%;padding:17px 14px 8px;border:1.6px solid var(--line);border-radius:10px;
+  font-size:15px;background:#fbfdfc;color:var(--ink);transition:border-color .15s ease, box-shadow .15s ease;
+}
+.field textarea{resize:vertical;min-height:70px;}
+.field label{
+  position:absolute;left:14px;top:16px;color:#7c9a8d;font-size:15px;pointer-events:none;
+  transition:all .15s ease;background:transparent;padding:0 4px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--green-light);box-shadow:0 0 0 4px var(--green-pale);outline:none;
+}
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label,
+.field select:focus + label,
+.field select.filled + label,
+.field textarea:focus + label,
+.field textarea:not(:placeholder-shown) + label{
+  top:-9px;left:10px;font-size:11.5px;font-weight:700;color:var(--green-light);background:#fbfdfc;
+}
+.field.error input,.field.error select,.field.error textarea{border-color:var(--danger);}
+.field.error{animation:shake .35s ease;}
+.err-msg{display:none;color:var(--danger);font-size:12px;margin-top:5px;font-weight:600;}
+.field.error .err-msg{display:block;}
+@keyframes shake{
+  10%,90%{transform:translateX(-1px);}
+  20%,80%{transform:translateX(2px);}
+  30%,50%,70%{transform:translateX(-4px);}
+  40%,60%{transform:translateX(4px);}
+}
+.hint{font-size:12px;color:#8aa79b;margin-top:5px;}
+
+.radio-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding-top:6px;}
+.radio-pill{
+  flex:1;border:1.6px solid var(--line);border-radius:10px;padding:13px;text-align:center;
+  font-weight:600;color:#5f7d70;transition:all .15s ease;user-select:none;
+  background:#fff;width:100%;display:block;
+}
+.radio-pill input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+button.radio-pill{font-family:inherit;appearance:none;-webkit-appearance:none;font-size:14.5px;}
+.radio-pill.checked{background:var(--green-pale);border-color:var(--green-light);color:var(--green-dark);}
+.radio-pill:hover{transform:translateY(-1px);}
+.checkbox-row{display:flex;gap:12px;align-items:flex-start;padding:16px;background:var(--green-pale);border-radius:12px;}
+.checkbox-row input{margin-top:3px;width:18px;height:18px;accent-color:var(--green-light);}
+.checkbox-row label{font-size:13.5px;color:var(--green-dark);line-height:1.5;}
+
+/* webcam */
+.cam-box{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
+.cam-frame{
+  width:180px;height:180px;border-radius:16px;background:var(--green-pale);border:2px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0;
+}
+.cam-frame img,.cam-frame video{width:100%;height:100%;object-fit:cover;}
+.cam-placeholder{color:#8aa79b;font-size:12px;text-align:center;padding:10px;}
+.cam-actions{display:flex;flex-direction:column;gap:10px;min-width:200px;}
+
+/* buttons */
+.btn{
+  border:none;border-radius:11px;padding:13px 22px;font-weight:700;font-size:14.5px;
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover{transform:translateY(-2px) scale(1.015);}
+.btn:active{transform:translateY(0) scale(.99);}
+.btn-primary{background:linear-gradient(120deg,var(--green-light),var(--green-dark));color:#fff;box-shadow:0 10px 24px -10px rgba(10,61,46,.6);}
+.btn-gold{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:var(--green-dark);box-shadow:0 10px 24px -10px rgba(201,168,0,.6);}
+.btn-ghost{background:#fff;color:var(--green-dark);border:1.6px solid var(--line);}
+.btn-danger{background:#fdeceb;color:var(--danger);border:1.6px solid #f3c9c4;}
+.btn-sm{padding:8px 14px;font-size:13px;border-radius:9px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+.form-nav{display:flex;justify-content:space-between;margin-top:30px;}
+
+/* ===================== LOGIN ===================== */
+.login-page{
+  max-width:680px;margin:24px auto 0;padding:0 clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 120px);
+}
+.login-wrap{
+  width:100%;margin:0;padding:20px 22px 22px;border-radius:26px;background:rgba(255,255,255,.97);border:1px solid rgba(255,255,255,.4);box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center;min-height:100%;
+}
+.login-brand-header{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.register-brand-header{display:flex;align-items:center;gap:14px;padding:4px 0 18px;border-bottom:1px solid var(--line);margin-bottom:20px;}
+.register-brand-mark{width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,#dff5eb,#fef3c7);border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 22px -18px rgba(10,61,46,.6);}
+.register-brand-mark img{width:100%;height:100%;object-fit:cover;display:block;}
+.register-brand-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;color:var(--green-dark);font-size:22px;}
+.login-brand-mark{
+  width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#dff5eb,#fef3c7);border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 22px -18px rgba(10,61,46,.6);
+}
+.login-brand-mark img{width:100%;height:100%;object-fit:cover;display:block;}
+.login-brand-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;color:var(--green-dark);font-size:20px;}
+.login-scripture{
+  position:relative;overflow:hidden;border-radius:18px;background:linear-gradient(135deg,#f0faf4,#ecf7f0);border:1px solid var(--line);padding:14px 16px 12px;margin-bottom:20px;min-height:142px;display:flex;align-items:center;justify-content:center;
+}
+.scripture-slide{
+  position:absolute;inset:0;padding:18px 18px 12px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;width:max-content;white-space:nowrap;opacity:0;transform:translateX(110%);pointer-events:none;visibility:hidden;
+}
+.scripture-slide.active{opacity:1;transform:translateX(0);pointer-events:auto;visibility:visible;animation:scriptureTravel 14s linear both;}
+@keyframes scriptureTravel{
+  0%{opacity:0;transform:translateX(110%);}
+  12%{opacity:1;transform:translateX(55%);}
+  50%{opacity:1;transform:translateX(0);}
+  88%{opacity:1;transform:translateX(-55%);}
+  100%{opacity:0;transform:translateX(-110%);}
+}
+.scripture-verse{font-size:19px;line-height:1.5;color:var(--green-dark);font-weight:700;font-family:'Sora',sans-serif;white-space:nowrap;}
+.scripture-ref{margin-top:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5f7d70;font-weight:700;}
+.scripture-dots{display:flex;justify-content:center;gap:7px;position:absolute;bottom:10px;left:0;right:0;}
+.scripture-dots span{width:8px;height:8px;border-radius:50%;background:rgba(19,76,62,.18);display:block;transition:all .2s ease;}
+.scripture-dots span.active{background:var(--green-light);transform:scale(1.15);} 
+.login-wrap .section-title{font-size:30px;margin-bottom:6px;line-height:1.1;text-align:left;}
+.login-wrap .section-sub{margin-bottom:20px;font-size:15px;}
+.role-toggle{display:flex;gap:10px;margin-bottom:20px;background:#edf6f2;border:1px solid var(--line);padding:6px;border-radius:16px;}
+.role-toggle button{flex:1;padding:14px;border-radius:12px;border:1.6px solid transparent;background:transparent;font-weight:700;color:#5f7d70;transition:all .15s ease;font-size:15px;}
+.role-toggle button.active{background:linear-gradient(135deg, rgba(26,122,90,.08), #ffffff);border-color:var(--green-light);color:var(--green-dark);box-shadow:0 8px 20px -12px rgba(10,61,46,.6);}
+.login-form .field{margin-bottom:18px;}
+.login-form .field input[type=text],
+.login-form .field input[type=password]{
+  width:100%;background:linear-gradient(180deg,#ffffff,#f9fffb);border:1.6px solid var(--line);border-radius:14px;padding:18px 16px 10px;font-size:16px;color:var(--ink);box-shadow:inset 0 1px 2px rgba(10,61,46,.04);height:58px;
+}
+.login-form .field input[type=text]:focus,
+.login-form .field input[type=password]:focus{
+  border-color:var(--green-light);box-shadow:0 0 0 5px rgba(26,122,90,.12), inset 0 1px 2px rgba(10,61,46,.04);outline:none;
+}
+.login-form .field label{top:18px;left:16px;font-size:15px;}
+.login-form .field input[type=text]:focus + label,
+.login-form .field input[type=text]:not(:placeholder-shown) + label,
+.login-form .field input[type=password]:focus + label,
+.login-form .field input[type=password]:not(:placeholder-shown) + label{
+  top:-9px;left:12px;font-size:11.5px;font-weight:700;color:var(--green-light);background:#ffffff;padding:0 5px;
+}
+.login-form .btn-primary{width:100%;padding:16px 18px;border-radius:14px;box-shadow:0 18px 26px -20px rgba(10,61,46,.65);font-size:17px;}
+.login-hint{margin-top:18px;text-align:center;font-size:12px;color:#6d8f80;font-weight:600;}
+.login-hint b{color:var(--green-dark);}
+.status-pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.03em;}
+.status-pending{background:#fff4d9;color:#7a5a00;border:1px solid #efdb9d;}
+.status-verified{background:#eafaf3;color:#11614a;border:1px solid #bfe8d3;}
+@media (max-width:860px){
+  .login-page{grid-template-columns:1fr;}
+  .login-brand-panel{min-height:260px;}
+  .role-toggle{flex-direction:column;}
+  .login-form .btn-primary{padding:14px 16px;}
+}
+@media (max-width:540px){
+  .topbar{padding:14px 16px;}
+  .brand{gap:9px;max-width:100%;}
+  .crest{width:40px;height:40px;flex-basis:40px;}
+  .brand-text b{font-size:14px;}
+  .brand-text span{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+}
+
+/* ===================== DASHBOARD ===================== */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+@media (max-width:800px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+.stat-card{
+  background:linear-gradient(160deg,#fff,var(--green-pale));border:1px solid var(--line);border-radius:14px;padding:18px;
+}
+.stat-card .num{font-family:'Sora',sans-serif;font-size:30px;font-weight:800;color:var(--green-dark);}
+.stat-card .lbl{font-size:12.5px;color:#5f7d70;font-weight:600;}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+@media (max-width:800px){.charts-row{grid-template-columns:1fr;}}
+.chart-box{background:linear-gradient(180deg,#fff,#f8fbf9);border:1px solid var(--line);border-radius:16px;padding:16px;height:260px;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#f9fbfa;}
+.toolbar input,.toolbar select{
+  border:1.6px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;background:#fbfdfc;color:var(--ink);
+}
+.toolbar input[type=text]{flex:1;min-width:180px;}
+.toolbar .badge{padding:6px 10px;font-size:11px;}
+.spacer{flex:1;}
+
+.admin-topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#f9fffb,#eef8f2);
+  margin-bottom:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.admin-brand-summary{display:flex;align-items:center;gap:14px;}
+.admin-brand-mark{
+  width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#dff5eb,#fef3c7);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 10px 24px -18px rgba(10,61,46,.6);
+}
+.admin-brand-mark img{width:100%;height:100%;object-fit:cover;display:block;}
+.admin-brand-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;color:var(--green-dark);font-size:22px;}
+.admin-head{display:flex;flex-direction:column;gap:4px;}
+.admin-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.admin-kpi-row{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:16px;margin:18px 0 24px;}
+.stat-card{
+  background:linear-gradient(160deg,#fff,#f3faf5);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;position:relative;overflow:hidden;min-height:118px;
+}
+.stat-card::before{content:'';position:absolute;inset:0 auto 0 0;width:5px;background:linear-gradient(180deg,var(--green-light),var(--gold));}
+.stat-card .num{font-family:'Sora',sans-serif;font-size:30px;font-weight:800;color:var(--green-dark);display:block;margin-bottom:6px;}
+.stat-card .lbl{font-size:12.5px;color:#5f7d70;font-weight:600;line-height:1.4;}
+@media (max-width:800px){.admin-kpi-row{grid-template-columns:repeat(2,minmax(150px,1fr));}}
+@media (max-width:540px){.admin-kpi-row{grid-template-columns:1fr;}}
+
+.table{width:100%;border-collapse:collapse;font-size:13.5px;}
+thead th{
+  text-align:left;padding:10px 12px;background:var(--green-pale);color:var(--green-dark);
+  font-weight:700;position:sticky;top:0;font-size:12.5px;
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tbody tr:hover{background:#f7fbf9;}
+.table-wrap{overflow:auto;max-height:480px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.7);}
+.avatar-sm{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--green-pale);}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;background:var(--green-pale);color:var(--green-dark);}
+.icon-btn{border:none;background:none;padding:6px;border-radius:8px;font-size:15px;}
+.icon-btn:hover{background:var(--green-pale);}
+.icon-btn.danger:hover{background:#fdeceb;}
+.empty-state{text-align:center;padding:50px 20px;color:#8aa79b;}
+
+.log-list{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff;}
+.log-item{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px;align-items:flex-start;}
+.log-item:last-child{border-bottom:none;}
+.log-time{color:#8aa79b;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:90px;}
+.log-actor{font-weight:700;color:var(--green-dark);}
+
+/* modal */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(10,38,32,.55);display:flex;align-items:center;justify-content:center;
+  z-index:200;padding:20px;backdrop-filter:blur(3px);
+}
+.modal{background:#fff;border-radius:18px;padding:26px;max-width:520px;width:100%;max-height:88vh;overflow:auto;box-shadow:var(--shadow);}
+.modal h3{margin-top:0;color:var(--green-dark);}
+.modal-close-row{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+/* ecard */
+#ecard{
+  width:390px;border-radius:24px;overflow:hidden;background:linear-gradient(135deg,#0a3d2e 0%, #0c4d3d 34%, #1e7f66 100%);
+  color:#fff;padding:0;font-family:'Inter',sans-serif;position:relative;border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 28px 70px -28px rgba(10,61,46,.8);
+}
+#ecard::before{
+  content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.12),transparent 38%,rgba(255,215,0,.12));pointer-events:none;
+}
+#ecard .ec-top{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 10px;position:relative;z-index:1;}
+#ecard .ec-badge{font-family:'Sora',sans-serif;font-weight:800;font-size:12px;letter-spacing:1.8px;text-transform:uppercase;}
+#ecard .ec-tag{background:rgba(255,255,255,.1);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.18);font-size:10px;font-weight:700;letter-spacing:1px;}
+#ecard .ec-body{display:flex;gap:16px;align-items:flex-start;padding:0 18px 14px;position:relative;z-index:1;}
+#ecard .ec-photo-wrap{position:relative;}
+#ecard .ec-photo{width:100px;height:100px;border-radius:18px;object-fit:cover;border:3px solid rgba(255,215,0,.92);background:#0000002e;box-shadow:0 12px 20px -10px rgba(0,0,0,.38);}
+#ecard .ec-name{font-family:'Sora',sans-serif;font-weight:800;font-size:21px;line-height:1.2;letter-spacing:.2px;}
+#ecard .ec-course{font-size:12px;color:#dff7ee;margin-top:3px;}
+#ecard .ec-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+#ecard .ec-pill{display:inline-flex;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);font-size:10px;font-weight:700;color:#f4fff8;}
+#ecard .ec-id{font-size:12px;color:#ffd000;font-weight:800;margin-top:6px;letter-spacing:1px;}
+#ecard .ec-info{padding:16px 18px 18px;border-top:1px solid rgba(255,255,255,.12);position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center;}
+#ecard .ec-qr{background:#fff;padding:7px;border-radius:12px;box-shadow:0 10px 20px -8px rgba(0,0,0,.3);}
+#ecard .ec-foot{margin-top:6px;font-size:10px;color:#dff4eb;text-align:center;letter-spacing:1.5px;line-height:1.6;padding:0 18px 18px;position:relative;z-index:1;}
+#ecard .ec-sub{font-size:10px;color:#dfeee6;letter-spacing:.8px;}
+
+footer.app-footer{text-align:center;color:#dff3ea;font-size:12px;padding:22px 10px 30px;}
+
+@media (max-width:640px){
+  .nav-tabs{display:none;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .toolbar .spacer{display:none;}
+  .toolbar input,.toolbar select,.toolbar button{width:100%;}
+  .admin-actions{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="crest" id="topBrandMark">
+      <img id="topBrandLogo" src="" alt="Logo ya taasisi" class="hidden">
+      <span id="topBrandFallback">TU</span>
+    </div>
+    <div class="brand-text">
+      <b>TUCASA UDSM MABIBO HOSTEL(TUMH)</b>
+      <span>Usajili wa Wanafunzi Wapya · 2026/27</span>
+    </div>
+  </div>
+  <div class="nav-tabs" id="navTabs">
+    <button data-view="register" class="active">Usajili</button>
+    <button data-view="admin" class="nav-admin-hidden">Dashibodi</button>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- ===================== VIEW 1: USAJILI ===================== -->
+  <div id="view-register">
+    <div class="glass-card">
+
+      <div class="register-brand-header">
+        <div class="register-brand-mark">
+          <img id="registerBrandLogo" src="" alt="Logo ya taasisi" class="hidden">
+          <div id="registerBrandFallback" class="register-brand-fallback">TU</div>
+        </div>
+        <div>
+          <div style="font-weight:800;color:var(--green-dark);">TUCASA UDSM MABIBO HOSTEL(TUMH)</div>
+          <div class="section-sub" style="margin:3px 0 0;">Fomu rasmi ya usajili wa wanachama kwa mwaka 2026/27</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:20%"></div></div>
+        <div class="progress-steps" id="progressSteps">
+          <div class="pstep active" data-s="0"><div class="dot">1</div><span class="label"> Taarifa Binafsi</span></div>
+          <div class="pstep" data-s="1"><div class="dot">2</div><span class="label">taarifa za kitaluma</span></div>
+          <div class="pstep" data-s="2"><div class="dot">3</div><span class="label">Mawasiliano</span></div>
+          <div class="pstep" data-s="3"><div class="dot">4</div><span class="label">Kanisa</span></div>
+          <div class="pstep" data-s="4"><div class="dot">5</div><span class="label">Uthibitisho</span></div>
+        </div>
+      </div>
+
+      <form id="regForm" novalidate>
+
+        <!-- SEHEMU A -->
+        <section class="step" data-step="0">
+          <h2 class="section-title">Sehemu A · Taarifa Binafsi</h2>
+          <p class="section-sub">Jaza taarifa zako za msingi ili upate usajili rasmi.</p>
+          <div class="grid-2">
+            <div class="field">
+              <input type="text" id="firstName" placeholder=" " required>
+              <label for="firstName">Jina la Kwanza *</label>
+              <div class="err-msg">Tafadhali jaza jina la kwanza.</div>
+            </div>
+            <div class="field">
+              <input type="text" id="lastName" placeholder=" " required>
+              <label for="lastName">Jina la mwisho *</label>
+              <div class="err-msg">Tafadhali jaza jina la mwisho.</div>
+            </div>
+            <div class="field full">
+              <div class="hint" style="margin:0 0 8px;font-weight:700;color:var(--green-dark);">Jinsia *</div>
+              <div class="radio-row" data-group="gender">
+                <button type="button" class="radio-pill" id="pillMe" data-value="Me">Mwanaume</button>
+                <button type="button" class="radio-pill" id="pillKe" data-value="Ke">Mwanamke</button>
+              </div>
+              <div class="err-msg" id="genderErr">Chagua jinsia.</div>
+            </div>
+            <div class="field">
+              <input type="date" id="dob" placeholder=" " required>
+              <label for="dob">Tarehe ya Kuzaliwa *</label>
+              <div class="err-msg">Chagua tarehe ya kuzaliwa.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEHEMU B -->
+        <section class="step hidden" data-step="1">
+          <h2 class="section-title">Sehemu B · Taarifa za Kitaaluma </h2>
+          <p class="section-sub">Taarifa hizi zitatumika kwenye kitabu cha kumbukumbu za chama</p>
+          <div class="grid-2">
+            <div class="field full">
+              <input type="text" id="regNo" placeholder=" " required>
+              <label for="regNo"> Registration Number *</label>
+              <div class="err-msg" id="regNoErr">Namba hii tayari imesajiliwa au haijajazwa.</div>
+            </div>
+            <div class="field">
+              <select id="course" required>
+                <option value="" disabled selected hidden></option>
+                <option>BSc. Statistics</option>
+                <option>BSc. Computer Science</option>
+                <option>LL.B</option>
+                <option>BCom</option>
+                <option>BSc. Education</option>
+                <option>BSc. Engineering</option>
+                <option>BA.sociology</option>
+                <option><BA class="lingust">BA. Linguistics</BA></option>
+                <option>BSc. civil engineering</option>
+                <option value="Nyingine">Nyingine</option>
+              </select>
+              <label for="course">Kozi unayosoma *</label>
+              <div class="err-msg">Chagua kozi.</div>
+            </div>
+            <div class="field full hidden" id="otherCourseField">
+              <input type="text" id="otherCourse" placeholder=" ">
+              <label for="otherCourse">Andika kozi unayosoma / programu nyingine *</label>
+              <div class="err-msg">Tafadhali andika jina la kozi hiyo.</div>
+            </div>
+            <div class="field">
+              <select id="college" required>
+                <option value="" disabled selected hidden></option>
+                <option>COSS</option>
+                <option>SOMG</option>
+                <option>IKS</option>
+                <option>UDBS</option>
+                <option>UDSOL</option>
+                <option>CoICT</option>
+                <option>CoET</option>
+                <option>UDSE</option>
+                <option>Nyingine</option>
+              </select>
+              <label for="college">College *</label>
+              <div class="err-msg">Chagua college.</div>
+            </div>
+            <div class="field">
+              <select id="year" required>
+                <option value="" disabled selected hidden></option>
+                <option>Mwaka wa 1</option>
+                <option>Mwaka wa 2</option>
+                <option>Mwaka wa 3</option>
+                <option>Mwaka wa 4</option>
+              </select>
+              <label for="year">Mwaka wa Masomo *</label>
+              <div class="err-msg">Chagua mwaka wa masomo.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEHEMU C -->
+        <section class="step hidden" data-step="2">
+          <h2 class="section-title">Sehemu C · Mawasiliano</h2>
+          <div class="grid-2">
+            <div class="field">
+              <input type="tel" id="phone1" placeholder=" " maxlength="10" required>
+              <label for="phone1">Namba ya Simu (Binafsi) *</label>
+              <div class="err-msg" id="phone1Err">Namba iwe tarakimu 10 ianze na 07 au 06.</div>
+            </div>
+            <div class="field">
+              <input type="tel" id="phone2" placeholder=" " maxlength="10">
+              <label for="phone2">Namba Mbadala (ndugu/mzazi)</label>
+              <div class="err-msg" id="phone2Err">Namba iwe tarakimu 10 ianze na 07 au 06.</div>
+            </div>
+            <div class="field">
+              <input type="email" id="email" placeholder=" ">
+              <label for="email">Barua Pepe (Email)</label>
+              <div class="err-msg" id="emailErr">Fomati ya email si sahihi.</div>
+            </div>
+            <div class="field">
+              <input type="text" id="address" placeholder=" ">
+              <label for="address">mkoa unakotea</label>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEHEMU D -->
+        <section class="step hidden" data-step="3">
+          <h2 class="section-title">Sehemu D · Maelezo ya Kanisa </h2>
+          <div class="grid-2">
+            <div class="field full">
+              <input type="text" id="church" placeholder=" " required>
+              <label for="church">Kanisa Unalotoka  *</label>
+              <div class="err-msg">Tafadhali jaza kanisa unalotoka.</div>
+            </div>
+            <div class="field full">
+              <input type="text" id="prevService" placeholder=" ">
+              <label for="prevService">Ushiriki wa Awali (mfano: Pathfinder, Vijana, mzee wa kanisa , muimbaji)</label>
+            </div>
+            <div class="field full">
+              <div class="hint" style="margin:0 0 8px;font-weight:700;color:var(--green-dark);">
+                Je, unahitaji usaidizi wa kupata kanisa la kuabudia Mabibo hostel?
+              </div>
+              <div class="radio-row" data-group="needChurch">
+                <button type="button" class="radio-pill" id="pillNdio" data-value="Ndio">Ndio</button>
+                <button type="button" class="radio-pill" id="pillHapana" data-value="Hapana">Hapana</button>
+              </div>
+            </div>
+            <div class="field full">
+              <div class="hint" style="margin:0 0 8px;font-weight:700;color:var(--green-dark);">
+                Je, ungependa kujiunga na Kwaya ya TUCASA?
+              </div>
+              <div class="radio-row" data-group="choir">
+                <button type="button" class="radio-pill" data-value="Ndio">Ndio, najiunga</button>
+                <button type="button" class="radio-pill" data-value="Hapana">Sio kwa sasa</button>
+              </div>
+              <div class="hint" style="margin-top:10px;">Ukichagua Ndio, bonyeza hapa kujiunga na group la WhatsApp la Kwaya.</div>
+              <button type="button" class="btn btn-ghost btn-sm" id="btnJoinChoirWhatsapp" style="margin-top:10px;">💬 Jiunge na WhatsApp ya Kwaya</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEHEMU E -->
+        <section class="step hidden" data-step="4">
+          <h2 class="section-title">Sehemu E · Picha, Idhini na Uthibitisho</h2>
+          <p class="section-sub">Piga picha ya mwanafunzi kisha thibitisha kanuni kuhitimisha usajili.</p>
+
+          <div class="cam-box" style="margin-bottom:22px;">
+            <div class="cam-frame" id="camFrame">
+              <div class="cam-placeholder" id="camPlaceholder">Hakuna picha bado</div>
+            </div>
+            <div class="cam-actions">
+              <button type="button" class="btn btn-ghost btn-sm" id="btnOpenCam">📷 Washa Kamera (Papo Hapo)</button>
+              <button type="button" class="btn btn-primary btn-sm hidden" id="btnSnap">Piga Picha</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btnPickPhoto">🖼️ Piga/Chagua Picha (Kamera ya Simu)</button>
+              <button type="button" class="btn btn-ghost btn-sm hidden" id="btnRetake">Piga Tena</button>
+              <input type="file" accept="image/*" capture="user" id="photoFileInput" class="hidden">
+              <div class="hint">Picha itaonekana kwenye E-Card yako. Kama "Washa Kamera" haifanyi kazi, tumia "Piga/Chagua Picha".</div>
+            </div>
+          </div>
+          <canvas id="camCanvas" class="hidden" width="320" height="320"></canvas>
+
+          <div class="checkbox-row" style="margin-bottom:10px;">
+            <input type="checkbox" id="agree" required>
+            <label for="agree">Nakubali kuzingatia sheria na kanuni za TUCASA UDSM MABIBO HOSTEL(TUMH) *</label>
+          </div>
+          <div class="err-msg" id="agreeErr" style="margin-bottom:14px;">Lazima ukubali kanuni kabla ya kuendelea.</div>
+        </section>
+
+        <div class="form-nav">
+          <button type="button" class="btn btn-ghost" id="btnBack" disabled>← Nyuma</button>
+          <button type="button" class="btn btn-primary" id="btnNext">Endelea →</button>
+          <button type="submit" class="btn btn-gold hidden" id="btnSubmit">✓ Kamilisha Usajili</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== VIEW 2: LOGIN ===================== -->
+  <div id="view-login" class="hidden">
+    <div class="login-page">
+      <div class="glass-card login-wrap" style="position:relative;">
+        <div class="login-brand-header">
+          <div class="login-brand-mark" id="loginBrandMark">
+            <img id="loginBrandLogo" src="" alt="Logo ya chama" class="hidden">
+            <div id="loginBrandFallback" class="login-brand-fallback">TU</div>
+          </div>
+        </div>
+        <div class="login-scripture" aria-live="polite">
+          <div class="scripture-slide active">
+            <div class="scripture-slide">
+
+            </div>maana neema ya mungu iwaokowayo wanadamu wote imefunuliwa , nayo yatufundisha kuukataa ubaya na tamaa za kidunia , tupate kuishi kwa kiasi, na haki, na utauwa, katika ulimwengu huu wa sasa, tukilitazamia tumaini lenye baraka na mafunuo ya utukufu wa kristo yesu, mungu mkuu na mwokozi wetu”</div>
+            <div class="scripture-ref">2 Timotheo 1:7-13</div>
+          </div>
+          <div class="scripture-slide">
+            <div class="scripture-verse">“Kila kitu kinaweza kufanywa kwa mtu anayemwamini Mungu; Mungu atakupa nguvu ya kutenda.”</div>
+            <div class="scripture-ref">Filipi 4:13</div>
+          </div>
+          <div class="scripture-slide">
+            <div class="scripture-verse">“Moyo wa mtumishi wa Mungu ni nguvu ya moyo wa watu; usikate tamaa, tumaini litaiibuka.”</div>
+            <div class="scripture-ref">Mhubiri 3:1</div>
+          </div>
+          <div class="scripture-dots">
+            <span class="active"></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <h2 class="section-title" style="text-align:left;">Ingia Dashibodi</h2>
+        <p class="section-sub" style="text-align:left;">Chagua daraja lako kisha weka nenosiri.</p>
+        <div class="role-toggle">
+          <button type="button" data-role="admin" class="active">Admin (Super)</button>
+          <button type="button" data-role="clerk">Clerk</button>
+        </div>
+        <div class="login-form">
+          <div class="field full clerk-name-field hidden" style="margin-bottom:16px;">
+            <input type="text" id="loginClerkName" placeholder=" ">
+            <label for="loginClerkName">Jina la Clerk</label>
+            <div class="err-msg" id="clerkNameErr">Jina la clerk linahitajika.</div>
+          </div>
+          <div class="field full" style="margin-bottom:16px;">
+            <input type="password" id="loginPass" placeholder=" ">
+            <label for="loginPass">Nenosiri</label>
+            <div class="err-msg" id="loginErr">Nenosiri si sahihi.</div>
+          </div>
+          <div class="login-actions">
+            <button class="btn btn-primary" id="btnLogin">Ingia</button>
+            <button type="button" class="admin-access-trigger" id="adminAccessTrigger" aria-label="Admin access">Admin access</button>
+          </div>
+          <p class="login-hint"><b>Admin:</b> admin2026 &nbsp;·&nbsp; <b>Clerk:</b> clerk2026</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VIEW 3: ADMIN DASHBOARD ===================== -->
+  <div id="view-admin" class="hidden">
+    <div class="glass-card">
+      <div class="admin-topbar">
+        <div class="admin-brand-summary">
+          <div class="admin-brand-mark" id="adminBrandMark">
+            <img id="adminBrandLogo" src="" alt="Logo ya chama" class="hidden">
+            <div id="adminBrandFallback" class="admin-brand-fallback">TU</div>
+          </div>
+          <div class="admin-head">
+            <h2 class="section-title" style="margin-bottom:2px;">Dashibodi ya Usimamizi</h2>
+            <p class="section-sub" style="margin:0;">Umeingia kama <span class="badge" id="roleBadge">Admin</span></p>
+          </div>
+        </div>
+        <div class="admin-actions">
+          <label for="adminLogoUpload" class="btn btn-ghost btn-sm" style="margin:0;cursor:pointer;">📷 Weka Logo ya Chama</label>
+          <input type="file" id="adminLogoUpload" accept="image/*" style="display:none;">
+          <button class="btn btn-ghost btn-sm" id="btnRemoveLogo" type="button">Futa Logo</button>
+          <button class="btn btn-ghost btn-sm" id="btnLogout">Toka</button>
+        </div>
+      </div>
+
+      <div class="admin-actions" style="justify-content:flex-end;margin-bottom:18px;">
+        <button class="btn btn-ghost btn-sm" id="btnToggleClerkAccess" type="button">✅ Ruhusu Clerk</button>
+        <button class="btn btn-ghost btn-sm" id="btnApprovePending" type="button">✔ Wathibitishe Wote</button>
+        <button class="btn btn-ghost btn-sm" id="btnChangePassword" type="button">🔐 Badilisha Nenosiri</button>
+      </div>
+
+      <div class="glass-card" style="padding:14px 16px;margin:0 0 20px;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-weight:700;font-size:13px;color:var(--green-dark);margin-bottom:6px;">Link ya Google Sheet / Apps Script</div>
+            <div style="font-size:12px;color:var(--muted);">Weka URL ya Apps Script yako ili data isync kwenye spreadsheet.</div>
+          </div>
+          <div style="display:flex;flex:1;gap:10px;min-width:260px;max-width:620px;flex-wrap:wrap;">
+            <input id="googleSheetsUrlInput" type="text" value="" placeholder="https://script.google.com/.../exec" style="flex:1;min-width:220px;">
+            <button class="btn btn-primary btn-sm" id="btnSaveGoogleSheetsUrl" type="button">Hifadhi Link</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-kpi-row">
+        <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Jumla ya Wanafunzi</div></div>
+        <div class="stat-card"><div class="num" id="statPending">0</div><div class="lbl">Wanasubiria Uthibitisho</div></div>
+        <div class="stat-card"><div class="num" id="statApproved">0</div><div class="lbl">Waliothibitishwa</div></div>
+        <div class="stat-card"><div class="num" id="statMale">0</div><div class="lbl">Wanaume</div></div>
+      </div>
+
+      <div class="toolbar" style="margin-top:8px;">
+        <span class="badge" id="clerkAccessStatus">Clerk: Imezuiwa</span>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" id="btnClearFilters" type="button">🔄 Safisha Filters</button>
+        <button class="btn btn-primary btn-sm" id="btnPrintList" type="button">🖨 Print Orodha</button>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-box"><canvas id="chartCourse"></canvas></div>
+        <div class="chart-box"><canvas id="chartGender"></canvas></div>
+      </div>
+
+      <div class="toolbar">
+        <input type="text" id="searchBox" placeholder="Tafuta kwa jina au namba ya mtihani...">
+        <select id="filterCourse"><option value="">Kozi Zote</option></select>
+        <select id="filterGender">
+          <option value="">Jinsia Zote</option>
+          <option value="Me">Me</option>
+          <option value="Ke">Ke</option>
+        </select>
+        <select id="filterTime">
+          <option value="">Muda Wote</option>
+          <option value="asubuhi">Asubuhi</option>
+          <option value="alasiri">Alasiri</option>
+        </select>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" id="btnExportCsv">⬇ CSV</button>
+        <button class="btn btn-ghost btn-sm" id="btnBackupJson">⬇ Backup JSON</button>
+        <button class="btn btn-ghost btn-sm" id="btnRestoreJson">⬆ Restore</button>
+        <input type="file" id="restoreInput" accept=".json" class="hidden">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Picha</th><th>Namba ya Usajili</th><th>Jina</th><th>Kozi</th><th>Simu</th><th>Tarehe</th><th>Vitendo</th>
+            </tr>
+          </thead>
+          <tbody id="studentsBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="emptyState">Hakuna rekodi zinazolingana na utafutaji wako.</div>
+
+      <h3 class="section-title" style="margin-top:32px;">Audit Trail — Kumbukumbu za Vitendo</h3>
+      <div class="log-list" id="logList"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="app-footer">TUCASA UDSM MABIBO HOSTEL(TUMH) — Mfumo wa Usajili 2026</footer>
+
+<!-- ===================== MODAL: EDIT STUDENT ===================== -->
+<div class="modal-backdrop hidden" id="editModal">
+  <div class="modal">
+    <h3>Hariri Rekodi</h3>
+    <div class="grid-2" id="editFields" style="grid-template-columns:1fr;gap:14px;"></div>
+    <div class="modal-close-row">
+      <button class="btn btn-ghost btn-sm" id="btnCancelEdit">Ghairi</button>
+      <button class="btn btn-primary btn-sm" id="btnSaveEdit">Hifadhi Mabadiliko</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: CHANGE PASSWORD ===================== -->
+<div class="modal-backdrop hidden" id="passwordModal">
+  <div class="modal" style="max-width:420px;">
+    <h3>Badilisha Nenosiri</h3>
+    <div class="grid-2" style="grid-template-columns:1fr;gap:14px;">
+      <div class="field">
+        <input type="password" id="currentPassword" placeholder=" ">
+        <label for="currentPassword">Nenosiri la Sasa</label>
+      </div>
+      <div class="field">
+        <input type="password" id="newPassword" placeholder=" ">
+        <label for="newPassword">Nenosiri Jipya</label>
+      </div>
+      <div class="field">
+        <input type="password" id="confirmPassword" placeholder=" ">
+        <label for="confirmPassword">Thibitisha Nenosiri Jipya</label>
+      </div>
+    </div>
+    <div class="modal-close-row">
+      <button class="btn btn-ghost btn-sm" id="btnCancelPassword">Ghairi</button>
+      <button class="btn btn-primary btn-sm" id="btnSavePassword">Hifadhi</button>
+    </div>
+  </div>
+</div>
+
+<!-- E-Card iliyofichwa, hutumika kutengeneza picha ya PDF/PNG -->
+<div id="ecardHolder" style="position:fixed;left:-9999px;top:0;"></div>
+
+<script>
+/* ======================================================================
+   TUCASA UDSM — MFUMO WA USAJILI (Offline-first, LocalStorage)
+   Maelezo yote ya kificho yameandikwa kwa Kiswahili kwa ajili ya Mayunga.
+   ====================================================================== */
+
+/* ---------- FUNGUO ZA LOCALSTORAGE ---------- */
+const LS_STUDENTS = 'tucasa_students';
+const LS_LOGS     = 'tucasa_logs';
+const LS_COUNTER  = 'tucasa_counter';
+const LS_LOGO     = 'tucasa_chama_logo';
+const LS_CREDENTIALS = 'tucasa_credentials';
+const LS_CLERK_APPROVAL = 'tucasa_clerk_approval';
+const LS_CLERK_APPROVED_NAME = 'tucasa_clerk_approved_name';
+const LS_STUDENT_INDEX = 'tucasa_student_index';
+const SECURITY_KEY = 'TUCASA-SECURE-2026';
+const YEAR_TAG    = '2026';
+const CHOIR_WHATSAPP_URL = 'https://chat.whatsapp.com/JDFNs6Yak3X419Scl8dPSi?s=sh&p=a&mlu=4';
+const DAILY_VERSES = [
+  { ref: 'Yohana 3:16', text: 'Kwa maana Mungu aliupenda ulimwengu hata akamtoa Mwanawe wa pekee, ili kila mtu amwaminiye asipotee, bali awe na uzima wa milele.' },
+  { ref: 'Filipi 4:13', text: 'Ninaweza yote kwa ajili ya Kristo aniniondoye nguvu.' },
+  { ref: 'Jeremia 29:11', text: 'Maana najua mipango niliyoweka kwa ajili yenu, asema Bwana, mipango ya neema wala si ya madhara, ili iwape waheri na tumaini.' },
+  { ref: 'Psalms 46:1', text: 'Mungu ni kimbilio chetu na nguvu zetu, ni msaada ulio tayari katika dhiki.' },
+  { ref: 'Mithali 3:5-6', text: 'Mtumaini Bwana kwa moyo wako wote, wala usijitegemee ufahamu wako; umjue Bwana njia zako zote, naye atayasaidia.' }
+];
+const LS_GOOGLE_SHEETS_URL = 'tucasa_google_sheets_url';
+const DEFAULT_GOOGLE_SHEETS_URL = 'PASTE_YOUR_GOOGLE_SHEETS_URL_HERE';
+
+function getGoogleSheetsUrl(){
+  const saved = readStoredValue(LS_GOOGLE_SHEETS_URL, DEFAULT_GOOGLE_SHEETS_URL);
+  return typeof saved === 'string' ? saved.trim() : DEFAULT_GOOGLE_SHEETS_URL;
+}
+
+function setGoogleSheetsUrl(value){
+  const normalized = (value || '').trim();
+  const nextValue = normalized || DEFAULT_GOOGLE_SHEETS_URL;
+  writeStoredValue(LS_GOOGLE_SHEETS_URL, nextValue);
+  return nextValue;
+}
+
+function isGoogleSheetsEnabled(){
+  const url = getGoogleSheetsUrl();
+  return !!url && url.indexOf('PASTE_') === -1 && url.indexOf('YOUR_') === -1 && url.indexOf('example') === -1 && url.indexOf('localhost') === -1;
+}
+
+/* ---------- HELPER: SOMA / ANDIKA DATA ---------- */
+const DB_NAME = 'tucasa_large_db';
+const DB_VERSION = 1;
+let dbInstance = null;
+let appData = {
+  students: [],
+  logs: []
+};
+
+function encodeStoredValue(value){
+  const raw = encodeURIComponent(JSON.stringify(value));
+  let output = '';
+  for (let i = 0; i < raw.length; i++) {
+    const keyChar = SECURITY_KEY.charCodeAt(i % SECURITY_KEY.length);
+    output += String.fromCharCode(raw.charCodeAt(i) ^ keyChar);
+  }
+  return btoa(output);
+}
+
+function decodeStoredValue(rawValue){
+  const encoded = rawValue || '';
+  if (!encoded) return null;
+  try {
+    const decoded = atob(encoded);
+    let output = '';
+    for (let i = 0; i < decoded.length; i++) {
+      const keyChar = SECURITY_KEY.charCodeAt(i % SECURITY_KEY.length);
+      output += String.fromCharCode(decoded.charCodeAt(i) ^ keyChar);
+    }
+    return JSON.parse(decodeURIComponent(output));
+  } catch {
+    try {
+      return JSON.parse(rawValue);
+    } catch {
+      return null;
+    }
+  }
+}
+
+const LARGE_STORAGE_LIMIT = 900 * 1024; // 900KB threshold: keep huge payloads out of localStorage
+
+function writeStoredValue(key, value){
+  try {
+    const payload = JSON.stringify(value);
+    if (payload.length > LARGE_STORAGE_LIMIT) {
+      console.warn(`Skipping localStorage cache for ${key}: payload too large (${payload.length} bytes). IndexedDB will hold the full dataset.`);
+      return;
+    }
+    localStorage.setItem(key, encodeStoredValue(value));
+  } catch (error) {
+    console.warn(`localStorage quota exceeded for ${key}. Falling back to IndexedDB-only storage.`, error);
+  }
+}
+
+function readStoredValue(key, fallbackValue){
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = decodeStoredValue(raw);
+    return parsed !== null ? parsed : fallbackValue;
+  } catch {
+    return fallbackValue;
+  }
+}
+
+function sanitizeBackupObject(data){
+  const safe = {};
+  if (Array.isArray(data.students)) safe.students = data.students;
+  if (Array.isArray(data.logs)) safe.logs = data.logs;
+  if (data.counter !== undefined && !Number.isNaN(Number(data.counter))) safe.counter = String(data.counter);
+  return safe;
+}
+
+function getStudentIndex(){
+  try {
+    const saved = readStoredValue(LS_STUDENT_INDEX, []);
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveStudentIndex(rows){
+  const compactIndex = (rows || []).map(({ regId, regNo, phone1, email, firstName, lastName }) => ({
+    regId,
+    regNo: (regNo || '').trim().toLowerCase(),
+    phone1: (phone1 || '').trim(),
+    email: (email || '').trim().toLowerCase(),
+    firstName: (firstName || '').trim(),
+    lastName: (lastName || '').trim()
+  }));
+  try {
+    writeStoredValue(LS_STUDENT_INDEX, compactIndex.slice(0, 500));
+  } catch (error) {
+    console.warn('Student registration index could not be cached locally.', error);
+  }
+}
+
+function findExistingStudentCandidate({ regNo, phone1, email, firstName, lastName }){
+  const payload = {
+    regNo: (regNo || '').trim().toLowerCase(),
+    phone1: (phone1 || '').trim(),
+    email: (email || '').trim().toLowerCase(),
+    firstName: (firstName || '').trim().toLowerCase(),
+    lastName: (lastName || '').trim().toLowerCase()
+  };
+
+  return getStudentIndex().find(item => {
+    const sameRegNo = payload.regNo && item.regNo && item.regNo === payload.regNo;
+    const samePhone = payload.phone1 && item.phone1 && item.phone1 === payload.phone1;
+    const sameEmail = payload.email && item.email && item.email === payload.email;
+    const sameNameAndPhone = payload.firstName && payload.lastName && item.firstName && item.lastName &&
+      item.firstName === payload.firstName && item.lastName === payload.lastName && samePhone;
+    return sameRegNo || samePhone || sameEmail || sameNameAndPhone;
+  }) || null;
+}
+
+function fallbackStudents(){
+  try { return readStoredValue(LS_STUDENTS, []); }
+  catch { return []; }
+}
+function fallbackLogs(){
+  try { return readStoredValue(LS_LOGS, []); }
+  catch { return []; }
+}
+
+function persistToIndexedDB(storeName, rows){
+  if(!('indexedDB' in window) || !dbInstance) return;
+  const tx = dbInstance.transaction(storeName, 'readwrite');
+  const store = tx.objectStore(storeName);
+  store.clear();
+  rows.forEach((row, idx) => {
+    if(storeName === 'logs' && !row.id){
+      row.id = `${Date.now()}-${idx}-${Math.random().toString(16).slice(2)}`;
+    }
+    store.put(row);
+  });
+}
+
+function readFromIndexedDB(storeName){
+  return new Promise((resolve, reject) => {
+    if(!('indexedDB' in window) || !dbInstance){
+      resolve([]); return;
+    }
+    const tx = dbInstance.transaction(storeName, 'readonly');
+    const req = tx.objectStore(storeName).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error || new Error('Failed to read from indexedDB'));
+  });
+}
+
+function initLargeDatabase(){
+  appData.students = fallbackStudents();
+  appData.logs = fallbackLogs();
+
+  if(!('indexedDB' in window)) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if(!db.objectStoreNames.contains('students')){
+        db.createObjectStore('students', { keyPath: 'regId' });
+      }
+      if(!db.objectStoreNames.contains('logs')){
+        db.createObjectStore('logs', { keyPath: 'id' });
+      }
+    };
+
+    request.onsuccess = async () => {
+      dbInstance = request.result;
+      try {
+        const storedStudents = await readFromIndexedDB('students');
+        if(Array.isArray(storedStudents) && storedStudents.length){
+          appData.students = storedStudents;
+          writeStoredValue(LS_STUDENTS, storedStudents.slice(0, 200));
+        }
+
+        const storedLogs = await readFromIndexedDB('logs');
+        if(Array.isArray(storedLogs) && storedLogs.length){
+          appData.logs = storedLogs;
+          writeStoredValue(LS_LOGS, storedLogs.slice(0, 120));
+        }
+      } catch (err) {
+        appData.students = fallbackStudents();
+        appData.logs = fallbackLogs();
+      }
+      resolve();
+    };
+
+    request.onerror = () => {
+      appData.students = fallbackStudents();
+      appData.logs = fallbackLogs();
+      resolve();
+    };
+  });
+}
+
+function getStudents(){ return appData.students; }
+function saveStudents(arr){
+  appData.students = arr.map(s => ({
+    ...s,
+    status: s.status || 'pending',
+    verifiedBy: s.verifiedBy || null,
+    verifiedAt: s.verifiedAt || null
+  }));
+  persistToIndexedDB('students', appData.students);
+  saveStudentIndex(appData.students);
+  try {
+    localStorage.setItem(LS_STUDENTS, JSON.stringify(appData.students.slice(0, 50).map(({ regId, firstName, lastName, regNo, phone1, course }) => ({ regId, firstName, lastName, regNo, phone1, course }))));
+  } catch (error) {
+    console.warn('Unable to keep a lightweight student cache in localStorage.', error);
+  }
+}
+function getLogs(){ return appData.logs; }
+function pruneExpiredLogs(){
+  const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+  const cleaned = (getLogs() || []).filter(item => {
+    const ts = new Date(item.time).getTime();
+    return !Number.isNaN(ts) && ts >= cutoff;
+  });
+  if (cleaned.length !== (getLogs() || []).length) {
+    saveLogs(cleaned);
+  }
+  return cleaned;
+}
+function getCredentials(){
+  const defaultCreds = { admin: 'admin2026', clerk: 'clerk2026' };
+  try {
+    const saved = readStoredValue(LS_CREDENTIALS, defaultCreds);
+    return { ...defaultCreds, ...(saved || defaultCreds) };
+  } catch {
+    return { ...defaultCreds };
+  }
+}
+function saveCredentials(creds){
+  writeStoredValue(LS_CREDENTIALS, creds);
+}
+function applyBrandLogo(dataUrl){
+  const adminLogoEl = document.getElementById('adminBrandLogo');
+  const adminFallbackEl = document.getElementById('adminBrandFallback');
+  const loginLogoEl = document.getElementById('loginBrandLogo');
+  const loginFallbackEl = document.getElementById('loginBrandFallback');
+  const registerLogoEl = document.getElementById('registerBrandLogo');
+  const registerFallbackEl = document.getElementById('registerBrandFallback');
+  const topLogoEl = document.getElementById('topBrandLogo');
+  const topFallbackEl = document.getElementById('topBrandFallback');
+
+  const setLogo = (logoEl, fallbackEl, src) => {
+    if (!logoEl || !fallbackEl) return;
+    if (src) {
+      logoEl.src = src;
+      logoEl.classList.remove('hidden');
+      fallbackEl.classList.add('hidden');
+    } else {
+      logoEl.removeAttribute('src');
+      logoEl.classList.add('hidden');
+      fallbackEl.classList.remove('hidden');
+    }
+  };
+
+  if (dataUrl) {
+    setLogo(adminLogoEl, adminFallbackEl, dataUrl);
+    setLogo(loginLogoEl, loginFallbackEl, dataUrl);
+    setLogo(registerLogoEl, registerFallbackEl, dataUrl);
+    setLogo(topLogoEl, topFallbackEl, dataUrl);
+    writeStoredValue(LS_LOGO, dataUrl);
+    return;
+  }
+
+  const saved = readStoredValue(LS_LOGO, '');
+  setLogo(adminLogoEl, adminFallbackEl, saved || '');
+  setLogo(loginLogoEl, loginFallbackEl, saved || '');
+  setLogo(registerLogoEl, registerFallbackEl, saved || '');
+  setLogo(topLogoEl, topFallbackEl, saved || '');
+}
+function removeBrandLogo(){
+  localStorage.removeItem(LS_LOGO);
+  applyBrandLogo('');
+}
+function isClerkApproved(){
+  const value = readStoredValue(LS_CLERK_APPROVAL, 'false');
+  return value === true || value === 'true';
+}
+function getApprovedClerkName(){
+  const saved = readStoredValue(LS_CLERK_APPROVED_NAME, 'Clerk wa kwanza');
+  return saved || 'Clerk wa kwanza';
+}
+function setClerkApproval(approved, approvedName = 'Clerk wa kwanza'){
+  writeStoredValue(LS_CLERK_APPROVAL, approved ? 'true' : 'false');
+  writeStoredValue(LS_CLERK_APPROVED_NAME, approvedName);
+}
+function saveLogs(arr){
+  appData.logs = arr;
+  persistToIndexedDB('logs', arr);
+  writeStoredValue(LS_LOGS, arr.slice(0, 120));
+}
+function nextRegId(){
+  let n = parseInt(readStoredValue(LS_COUNTER, '0'), 10) + 1;
+  writeStoredValue(LS_COUNTER, String(n));
+  return `TUCASA-${YEAR_TAG}-${String(n).padStart(3,'0')}`;
+}
+function addLog(actor, action){
+  const logs = pruneExpiredLogs();
+  logs.unshift({ id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, time: new Date().toISOString(), actor, action });
+  saveLogs(logs.slice(0, 120));
+}
+
+function clearSensitiveLocalData(){
+  const keysToClear = [LS_STUDENTS, LS_LOGS, LS_CREDENTIALS, LS_CLERK_APPROVAL, LS_CLERK_APPROVED_NAME, LS_COUNTER, LS_LOGO];
+  keysToClear.forEach(key => localStorage.removeItem(key));
+}
+function fmtTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleString('sw-TZ', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+
+async function loadStudentsFromGoogleSheets(){
+  if(!isGoogleSheetsEnabled()) return [];
+  const sheetUrl = getGoogleSheetsUrl();
+  try{
+    const res = await fetch(`${sheetUrl}?action=getStudents`);
+    if(!res.ok) throw new Error('Google Sheets fetch failed');
+    const data = await res.json();
+    return Array.isArray(data.students) ? data.students : [];
+  }catch(err){
+    console.warn('Google Sheets unavailable, using local data:', err);
+    return [];
+  }
+}
+
+async function syncStudentToGoogleSheets(student){
+  if(!isGoogleSheetsEnabled()) return;
+  const sheetUrl = getGoogleSheetsUrl();
+  try{
+    const res = await fetch(sheetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addStudent', student })
+    });
+    if(!res.ok) throw new Error('Google Sheets sync failed');
+  }catch(err){
+    console.warn('Could not sync to Google Sheets:', err);
+  }
+}
+
+async function updateStudentInGoogleSheets(student){
+  if(!isGoogleSheetsEnabled()) return;
+  const sheetUrl = getGoogleSheetsUrl();
+  try{
+    const res = await fetch(sheetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateStudent', student })
+    });
+    if(!res.ok) throw new Error('Google Sheets update failed');
+  }catch(err){
+    console.warn('Could not update Google Sheets record:', err);
+  }
+}
+
+async function deleteStudentFromGoogleSheets(regId){
+  if(!isGoogleSheetsEnabled()) return;
+  const sheetUrl = getGoogleSheetsUrl();
+  try{
+    const res = await fetch(sheetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteStudent', regId })
+    });
+    if(!res.ok) throw new Error('Google Sheets delete failed');
+  }catch(err){
+    console.warn('Could not delete Google Sheets record:', err);
+  }
+}
+
+const scriptureSlides = Array.from(document.querySelectorAll('.scripture-slide'));
+const scriptureDots = Array.from(document.querySelectorAll('.scripture-dots span'));
+let scriptureIndex = 0;
+
+function showScriptureSlide(index) {
+  scriptureSlides.forEach((slide, idx) => slide.classList.toggle('active', idx === index));
+  scriptureDots.forEach((dot, idx) => dot.classList.toggle('active', idx === index));
+}
+
+if (scriptureSlides.length) {
+  setInterval(() => {
+    scriptureIndex = (scriptureIndex + 1) % scriptureSlides.length;
+    showScriptureSlide(scriptureIndex);
+  }, 14000);
+}
+
+/* =====================================================================
+   SEHEMU 1: URAMBAZAJI KATI YA VIEW (Usajili / Login / Admin)
+   ===================================================================== */
+const views = {
+  register: document.getElementById('view-register'),
+  login: document.getElementById('view-login'),
+  admin: document.getElementById('view-admin'),
+};
+const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
+let session = { role: null, loginAt: null, lastActivity: null }; // 'admin' | 'clerk'
+
+function resetSessionActivity(){
+  if(session.role){
+    session.lastActivity = Date.now();
+  }
+}
+
+function enforceSessionAccess(){
+  if(!session.role){
+    showView('login');
+    return false;
+  }
+  if(session.lastActivity && (Date.now() - session.lastActivity) > SESSION_TIMEOUT_MS){
+    session = { role: null, loginAt: null, lastActivity: null };
+    showView('login');
+    Swal.fire({
+      title: 'Session imekwisha',
+      text: 'Umefungwa kwa sababu ya ukosefu wa shughuli. Ingiza password tena.',
+      icon: 'warning',
+      confirmButtonText: 'Sawa',
+      confirmButtonColor: '#1a7a5a'
+    });
+    return false;
+  }
+  session.lastActivity = Date.now();
+  return true;
+}
+
+function showView(name){
+  if (name === 'register' && !session.role) {
+    name = 'login';
+  }
+
+  Object.values(views).forEach(v => v.classList.add('hidden'));
+  views[name].classList.remove('hidden');
+  document.querySelectorAll('#navTabs button').forEach(b=>{
+    const isLoginView = name === 'login';
+    const shouldHighlightRegister = b.dataset.view === 'register' && !isLoginView;
+    const shouldHighlightAdmin = b.dataset.view === 'admin' && name === 'admin';
+    b.classList.toggle('active', shouldHighlightRegister || shouldHighlightAdmin || (isLoginView && b.dataset.view === 'register'));
+    b.classList.toggle('nav-admin-hidden', isLoginView && b.dataset.view === 'admin');
+  });
+
+  if(name === 'admin'){
+    if(!enforceSessionAccess()) return;
+    if(session.role === 'clerk'){
+      showView('register');
+      Swal.fire({
+        title: 'Mfikiaji umefungwa',
+        text: 'Clerk anaweza kufungua sehemu ya usajili tu. Dashboard ya admin inahitaji password ya admin.',
+        icon: 'info',
+        confirmButtonText: 'Sawa',
+        confirmButtonColor: '#1a7a5a'
+      });
+      return;
+    }
+    renderAdmin();
+  }
+}
+
+document.getElementById('navTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  if(btn.dataset.view === 'admin'){
+    if(!session.role){
+      showView('login');
+      Swal.fire({
+        title: 'Tafadhali ingia kwanza',
+        text: 'Sehemu ya dashboard inahitaji login ya admin au clerk.',
+        icon: 'info',
+        confirmButtonText: 'Sawa',
+        confirmButtonColor: '#1a7a5a'
+      });
+      return;
+    }
+    if(session.role === 'clerk'){
+      showView('register');
+      Swal.fire({
+        title: 'Mfikiaji umefungwa',
+        text: 'Clerk anaweza kufungua sehemu ya usajili tu. Dashboard ya admin inahitaji password ya admin.',
+        icon: 'info',
+        confirmButtonText: 'Sawa',
+        confirmButtonColor: '#1a7a5a'
+      });
+      return;
+    }
+    showView('admin');
+  } else {
+    if(!session.role){
+      showView('login');
+      Swal.fire({
+        title: 'Tafadhali ingia kwanza',
+        text: 'Fomu ya usajili inapatikana baada ya login.',
+        icon: 'info',
+        confirmButtonText: 'Sawa',
+        confirmButtonColor: '#1a7a5a'
+      });
+      return;
+    }
+    showView('register');
+  }
+});
+
+/* =====================================================================
+   SEHEMU 2: LOGIN YA ADMIN / CLERK
+   ===================================================================== */
+let loginRole = 'admin';
+document.querySelectorAll('.role-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.role-toggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loginRole = btn.dataset.role;
+    const clerkNameField = document.querySelector('.clerk-name-field');
+    if (clerkNameField) {
+      clerkNameField.classList.toggle('hidden', loginRole !== 'clerk');
+    }
+  });
+});
+document.getElementById('btnLogin').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('loginClerkName')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('adminAccessTrigger')?.addEventListener('click', ()=>{
+  const passInput = document.getElementById('loginPass');
+  if (passInput) {
+    passInput.focus();
+    passInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+document.addEventListener('mousemove', resetSessionActivity);
+document.addEventListener('keydown', resetSessionActivity);
+document.addEventListener('click', resetSessionActivity);
+
+function doLogin(){
+  const pass = document.getElementById('loginPass').value.trim();
+  const clerkName = document.getElementById('loginClerkName')?.value.trim() || '';
+  const credentials = getCredentials();
+  const correct = loginRole === 'admin' ? credentials.admin : credentials.clerk;
+  const passField = document.getElementById('loginPass').closest('.field');
+  const clerkNameField = document.getElementById('loginClerkName')?.closest('.field');
+
+  if(loginRole === 'clerk'){
+    if(!clerkName){
+      clerkNameField?.classList.add('error');
+      setTimeout(()=>clerkNameField?.classList.remove('error'), 400);
+      return;
+    }
+  }
+
+  if(pass !== correct){
+    passField.classList.add('error');
+    setTimeout(()=>passField.classList.remove('error'), 400);
+    return;
+  }
+
+  if(loginRole === 'clerk' && !isClerkApproved()){
+    const awaitingName = getApprovedClerkName() || 'Clerk wa kwanza';
+    Swal.fire({
+      title: 'Subiri Uthibitisho wa Admin',
+      text: `Nenosiri lako ni sahihi, lakini jina la clerk "${clerkName}" halijathibitishwa. Admin anahitaji kuthibitisha jina la clerk anayekubaliwa: ${awaitingName}. Tafadhali subiri approval ya admin.`,
+      icon: 'info',
+      confirmButtonText: 'Nimeelewa',
+      confirmButtonColor: '#1a7a5a'
+    });
+    document.getElementById('loginPass').value = '';
+    return;
+  }
+
+  if(loginRole === 'clerk' && clerkName !== getApprovedClerkName()){
+    Swal.fire({
+      title: 'Clerk Hajasajiliwa',
+      text: `Clerk "${clerkName}" hajathibitishwa na admin. Tafadhali ingia kwa jina la clerk linaloruhusiwa: "${getApprovedClerkName()}".`,
+      icon: 'warning',
+      confirmButtonText: 'Sawa',
+      confirmButtonColor: '#1a7a5a'
+    });
+    document.getElementById('loginPass').value = '';
+    return;
+  }
+
+  session = {
+    role: loginRole,
+    loginAt: Date.now(),
+    lastActivity: Date.now()
+  };
+  document.getElementById('loginPass').value = '';
+  if (document.getElementById('loginClerkName')) document.getElementById('loginClerkName').value = '';
+
+  if(loginRole === 'clerk'){
+    addLog('Clerk', `Aliingia kwenye mfumo wa usajili baada ya approval ya admin kwa jina: ${clerkName}`);
+    showView('register');
+    Swal.fire({
+      title: 'Clerk amefungua',
+      text: `Clerk ${clerkName} anaweza kutumia fomu ya usajili tu. Dashboard ya admin inahitaji password ya admin.`,
+      icon: 'success',
+      confirmButtonText: 'Sawa',
+      confirmButtonColor: '#1a7a5a'
+    });
+    return;
+  }
+
+  addLog('Admin', 'Aliingia kwenye Dashibodi');
+  showView('admin');
+  document.getElementById('roleBadge').textContent = 'Admin';
+  document.getElementById('roleBadge').style.background = '#e8f5ef';
+  document.getElementById('roleBadge').style.color = '#115c43';
+}
+
+document.getElementById('btnToggleClerkAccess').addEventListener('click', ()=>{
+  const approved = isClerkApproved();
+  Swal.fire({
+    title: approved ? 'Zuia access ya Clerk?' : 'Ruhusu Clerk kutumia usajili?',
+    text: approved ? 'Kwa hili clerk hataweza kutumia mfumo wa usajili mpaka apyawe tena.' : 'Andika jina la clerk anayekubaliwa. Jina hili litahakikisha kwamba hakikisha ni mtu sahihi anayepata access.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: approved ? 'Ndiyo, Zuia' : 'Ndiyo, Ruhusu',
+    cancelButtonText: 'Ghairi',
+    confirmButtonColor: '#1a7a5a',
+    input: approved ? undefined : 'text',
+    inputPlaceholder: approved ? '' : 'Andika jina la clerk aliyekubaliwa',
+    inputValue: approved ? undefined : getApprovedClerkName() === 'Clerk wa kwanza' ? '' : getApprovedClerkName()
+  }).then((res)=>{
+    if(!res.isConfirmed) return;
+    const nextApproved = !approved;
+    const approvedName = nextApproved ? (res.value || 'Clerk wa kwanza').trim() || 'Clerk wa kwanza' : 'Clerk wa kwanza';
+    setClerkApproval(nextApproved, approvedName);
+    addLog('Admin', `${nextApproved ? 'Aliruhusu' : 'Alizuia'} access ya Clerk kutumika kwenye usajili (${approvedName})`);
+    renderAdmin();
+    Swal.fire({
+      icon:'success',
+      title: nextApproved ? 'Clerk ameeruhusiwa' : 'Access ya Clerk imezuiwa',
+      text: nextApproved ? `Clerk "${approvedName}" ameeruhusiwa kuingia. Mtu mwingine tofauti naye atahitaji approval ya admin tena.` : 'Clerk haitakuwa na access hadi admin airuhusu tena.',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  });
+});
+
+document.getElementById('btnApprovePending').addEventListener('click', ()=>{
+  const pending = getStudents().filter(s => s.status !== 'verified');
+  if(!pending.length){
+    Swal.fire({ icon:'info', title:'Hakuna wanafunzi wanaosubiri kuthibitishwa' });
+    return;
+  }
+  Swal.fire({
+    title:'Thibitisha Wote Wanaosubiri?',
+    text:`Una thibitisha wanafunzi ${pending.length} kwenye orodha.`,
+    icon:'question',
+    showCancelButton:true,
+    confirmButtonText:'Ndiyo, Thibitisha',
+    cancelButtonText:'Ghairi',
+    confirmButtonColor:'#1a7a5a'
+  }).then((res)=>{
+    if(!res.isConfirmed) return;
+    const students = getStudents().map(s => {
+      if(s.status !== 'verified'){
+        s.status = 'verified';
+        s.verifiedBy = 'admin';
+        s.verifiedAt = new Date().toISOString();
+      }
+      return s;
+    });
+    saveStudents(students);
+    addLog('Admin', `Alithibitisha wanafunzi ${pending.length} wote walio katika orodha ya kusubiri`);
+    renderAdmin();
+    Swal.fire({ icon:'success', title:'Wanafunzi wote wamesithibitishwa', timer:1600, showConfirmButton:false });
+  });
+});
+
+document.getElementById('btnClearFilters').addEventListener('click', ()=>{
+  document.getElementById('searchBox').value = '';
+  document.getElementById('filterCourse').value = '';
+  document.getElementById('filterGender').value = '';
+  document.getElementById('filterTime').value = '';
+  renderTable();
+});
+
+document.getElementById('btnPrintList').addEventListener('click', ()=>{
+  const list = filteredStudents();
+  const rows = list.map((s, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td>${escapeHtml(s.regId)}</td>
+      <td>${escapeHtml(s.firstName)} ${escapeHtml(s.lastName)}</td>
+      <td>${escapeHtml(s.course)}</td>
+      <td>${escapeHtml(s.phone1 || '-')}</td>
+      <td>${escapeHtml(s.status === 'verified' ? 'Imethibitishwa' : 'Inasubiri')}</td>
+    </tr>
+  `).join('');
+
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html>
+      <head>
+        <title>Orodha ya Wanafunzi - TUCASA</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 24px; color: #123; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #dfe7e4; padding: 10px; text-align: left; }
+          th { background: #edf5f1; }
+          h2 { margin: 0 0 12px; }
+        </style>
+      </head>
+      <body>
+        <h2>Orodha ya Wanafunzi - TUCASA UDSM MABIBO HOSTEL(TUMH)</h2>
+        <table>
+          <thead><tr><th>#</th><th>Reg ID</th><th>Jina</th><th>Kozi</th><th>Simu</th><th>Status</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="6">Hakuna data</td></tr>'}</tbody>
+        </table>
+      </body>
+    </html>
+  `);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 500);
+});
+
+document.getElementById('btnChangePassword').addEventListener('click', ()=>{
+  document.getElementById('passwordModal').classList.remove('hidden');
+  document.getElementById('currentPassword').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+});
+
+document.getElementById('btnCancelPassword').addEventListener('click', ()=>{
+  document.getElementById('passwordModal').classList.add('hidden');
+});
+
+document.getElementById('btnSavePassword').addEventListener('click', ()=>{
+  const current = document.getElementById('currentPassword').value.trim();
+  const next = document.getElementById('newPassword').value.trim();
+  const confirm = document.getElementById('confirmPassword').value.trim();
+  const creds = getCredentials();
+
+  if(current !== creds.admin){
+    Swal.fire({ icon:'error', title:'Nenosiri la sasa si sahihi', text:'Andika nenosiri sahihi la admin kabla ya kubadili.' });
+    return;
+  }
+  if(!next || next.length < 6){
+    Swal.fire({ icon:'error', title:'Nenosiri jipya ni fupi', text:'Nenosiri lazima liwe na angalau herufi 6.' });
+    return;
+  }
+  if(next !== confirm){
+    Swal.fire({ icon:'error', title:'Nenosiri halijathibitishwa', text:'Nenosiri jipya na uthibitisho lazima ziwe sawa.' });
+    return;
+  }
+
+  creds.admin = next;
+  saveCredentials(creds);
+  document.getElementById('passwordModal').classList.add('hidden');
+  addLog('Admin', 'Alibadilisha nenosiri la admin');
+  Swal.fire({ icon:'success', title:'Nenosiri limebadilishwa', text:'Nenosiri la admin limerekodiwa kwenye mfumo.' });
+});
+document.getElementById('btnLogout').addEventListener('click', ()=>{
+  addLog(session.role === 'admin' ? 'Admin' : 'Clerk', 'Alitoka kwenye Dashibodi');
+  session = { role: null, loginAt: null, lastActivity: null };
+  if (document.getElementById('loginPass')) document.getElementById('loginPass').value = '';
+  if (document.getElementById('loginClerkName')) document.getElementById('loginClerkName').value = '';
+  showView('login');
+});
+document.getElementById('adminLogoUpload')?.addEventListener('change', (event)=>{
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target && e.target.result;
+    if (typeof dataUrl === 'string') {
+      applyBrandLogo(dataUrl);
+      Swal.fire({ icon: 'success', title: 'Logo imewekwa', text: 'Logo ya chama imehifadhiwa kwenye dashboard.' });
+    }
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+});
+document.getElementById('btnRemoveLogo')?.addEventListener('click', ()=>{
+  removeBrandLogo();
+  Swal.fire({ icon: 'info', title: 'Logo imefutwa', text: 'Logo ya chama imeondolewa kutoka kwenye dashboard.' });
+});
+
+document.getElementById('btnSaveGoogleSheetsUrl')?.addEventListener('click', ()=>{
+  const urlInput = document.getElementById('googleSheetsUrlInput');
+  if (!urlInput) return;
+  const url = setGoogleSheetsUrl(urlInput.value);
+  if (isGoogleSheetsEnabled()) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Link ya Google Sheet imehifadhiwa',
+      text: 'Data itasync kwenye spreadsheet yako inayounganishwa na URL hii.',
+      timer: 1800,
+      showConfirmButton: false
+    });
+  } else {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Link haijakamilika',
+      text: 'Weka URL ya script.google.com/…/exec ili syncing ianze.',
+      confirmButtonColor: '#1a7a5a'
+    });
+  }
+  urlInput.value = url === DEFAULT_GOOGLE_SHEETS_URL ? '' : url;
+});
+
+function loadGoogleSheetsConfig(){
+  const urlInput = document.getElementById('googleSheetsUrlInput');
+  if (!urlInput) return;
+  const saved = getGoogleSheetsUrl();
+  urlInput.value = saved === DEFAULT_GOOGLE_SHEETS_URL ? '' : saved;
+}
+
+/* =====================================================================
+   SEHEMU 3: FOMU YA USAJILI (Wizard ya Hatua 5)
+   ===================================================================== */
+const steps = Array.from(document.querySelectorAll('.step'));
+let currentStep = 0;
+
+function renderStep(){
+  steps.forEach(s => s.classList.toggle('hidden', Number(s.dataset.step) !== currentStep));
+  document.getElementById('progressFill').style.width = `${((currentStep+1)/steps.length)*100}%`;
+  document.querySelectorAll('.pstep').forEach(p=>{
+    const s = Number(p.dataset.s);
+    p.classList.toggle('active', s === currentStep);
+    p.classList.toggle('done', s < currentStep);
+  });
+  document.getElementById('btnBack').disabled = currentStep === 0;
+  document.getElementById('btnNext').classList.toggle('hidden', currentStep === steps.length-1);
+  document.getElementById('btnSubmit').classList.toggle('hidden', currentStep !== steps.length-1);
+}
+
+/* --- RADIO PILLS: vitufe halisi vya <button>, thamani zake huhifadhiwa
+   kwenye "selections" (JS object) badala ya input za fomu. Rahisi, na
+   hufanya kazi sawa na sehemu nyingine zote za fomu. --- */
+const selections = { gender: '', needChurch: '', choir: '' };
+
+document.querySelectorAll('.radio-row').forEach(row=>{
+  const groupName = row.dataset.group;
+  row.querySelectorAll('.radio-pill').forEach(pill=>{
+    pill.addEventListener('click', ()=>{
+      selections[groupName] = pill.dataset.value;
+      row.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('checked'));
+      pill.classList.add('checked');
+      if(groupName === 'gender'){
+        document.getElementById('genderErr').style.display = 'none';
+        row.closest('.field')?.classList.remove('error');
+      }
+    });
+  });
+});
+
+document.getElementById('btnJoinChoirWhatsapp')?.addEventListener('click', ()=>{
+  if (!selections.choir) {
+    Swal.fire({ icon:'info', title:'Chagua kwanza', text:'Chagua kama unataka kujiunga na Kwaya.' });
+    return;
+  }
+  if (selections.choir === 'Hapana') {
+    Swal.fire({ icon:'info', title:'Umechagua Sio kwa sasa', text:'Unaweza kujiunga na Kwaya wakati mwingine.' });
+    return;
+  }
+  if (CHOIR_WHATSAPP_URL.indexOf('PASTE_') === 0) {
+    Swal.fire({ icon:'warning', title:'Link ya WhatsApp haijawekwa', text:'Admin aweke invite link halisi ya group la WhatsApp la Kwaya kwenye mfumo.' });
+    return;
+  }
+  window.open(CHOIR_WHATSAPP_URL, '_blank', 'noopener,noreferrer');
+});
+
+
+/* --- select "filled" state kwa floating label --- */
+document.querySelectorAll('.field select').forEach(sel=>{
+  sel.addEventListener('change', ()=> {
+    sel.classList.toggle('filled', !!sel.value);
+    const otherField = document.getElementById('otherCourseField');
+    if(sel.id === 'course') {
+      if(sel.value === 'Nyingine'){
+        otherField.classList.remove('hidden');
+      } else {
+        otherField.classList.add('hidden');
+        document.getElementById('otherCourse').value = '';
+        otherField.classList.remove('error');
+      }
+    }
+  });
+});
+
+/* --- VALIDATION kwa kila hatua --- */
+function markError(fieldEl, isError){
+  fieldEl.classList.toggle('error', isError);
+}
+function validateStep(stepIdx){
+  let ok = true;
+
+  if(stepIdx === 0){
+    const fn = document.getElementById('firstName');
+    const ln = document.getElementById('lastName');
+    const dob = document.getElementById('dob');
+    markError(fn.closest('.field'), !fn.value.trim()); if(!fn.value.trim()) ok=false;
+    markError(ln.closest('.field'), !ln.value.trim()); if(!ln.value.trim()) ok=false;
+    const genderChosen = !!selections.gender;
+    document.getElementById('genderErr').style.display = genderChosen ? 'none' : 'block';
+    if(!genderChosen) ok=false;
+    markError(dob.closest('.field'), !dob.value); if(!dob.value) ok=false;
+  }
+
+  if(stepIdx === 1){
+    const regNo = document.getElementById('regNo');
+    const course = document.getElementById('course');
+    const otherCourse = document.getElementById('otherCourse');
+    const college = document.getElementById('college');
+    const year = document.getElementById('year');
+    const dup = getStudents().some(s => s.regNo.toLowerCase() === regNo.value.trim().toLowerCase());
+    const regNoField = regNo.closest('.field');
+    if(!regNo.value.trim() || dup){
+      markError(regNoField, true);
+      document.getElementById('regNoErr').textContent = dup ? 'Namba hii tayari imesajiliwa (duplicate).' : 'Tafadhali jaza namba ya mtihani.';
+      ok = false;
+    } else { markError(regNoField, false); }
+
+    if(course.value === 'Nyingine'){
+      const otherCourseField = document.getElementById('otherCourseField');
+      const otherValid = otherCourse.value.trim().length > 0;
+      markError(otherCourseField, !otherValid);
+      if(!otherValid) ok = false;
+    } else {
+      document.getElementById('otherCourseField').classList.add('hidden');
+      document.getElementById('otherCourseField').classList.remove('error');
+      otherCourse.value = '';
+    }
+
+    markError(course.closest('.field'), !course.value); if(!course.value) ok=false;
+    markError(college.closest('.field'), !college.value); if(!college.value) ok=false;
+    markError(year.closest('.field'), !year.value); if(!year.value) ok=false;
+  }
+
+  if(stepIdx === 2){
+    const p1 = document.getElementById('phone1');
+    const p2 = document.getElementById('phone2');
+    const em = document.getElementById('email');
+    const phoneRe = /^(07|06)\d{8}$/;
+    const p1ok = phoneRe.test(p1.value.trim());
+    markError(p1.closest('.field'), !p1ok); if(!p1ok) ok=false;
+    if(p2.value.trim()){
+      const p2ok = phoneRe.test(p2.value.trim());
+      markError(p2.closest('.field'), !p2ok); if(!p2ok) ok=false;
+    } else { markError(p2.closest('.field'), false); }
+    if(em.value.trim()){
+      const emOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim());
+      markError(em.closest('.field'), !emOk); if(!emOk) ok=false;
+    } else { markError(em.closest('.field'), false); }
+  }
+
+  if(stepIdx === 3){
+    const church = document.getElementById('church');
+    markError(church.closest('.field'), !church.value.trim()); if(!church.value.trim()) ok=false;
+  }
+
+  if(stepIdx === 4){
+    const agree = document.getElementById('agree');
+    const ok2 = agree.checked;
+    document.getElementById('agreeErr').style.display = ok2 ? 'none' : 'block';
+    if(!ok2){
+      document.querySelector('.checkbox-row').style.animation = 'shake .35s ease';
+      setTimeout(()=> document.querySelector('.checkbox-row').style.animation='', 400);
+    }
+    if(!ok2) ok=false;
+  }
+
+  return ok;
+}
+
+document.getElementById('btnNext').addEventListener('click', ()=>{
+  if(!validateStep(currentStep)) return;
+  currentStep = Math.min(currentStep+1, steps.length-1);
+  renderStep();
+});
+document.getElementById('btnBack').addEventListener('click', ()=>{
+  currentStep = Math.max(currentStep-1, 0);
+  renderStep();
+});
+
+/* =====================================================================
+   SEHEMU 4: KAMERA — KUPIGA PICHA YA MWANAFUNZI
+   Njia mbili: (A) getUserMedia - kamera ya moja kwa moja ndani ya ukurasa,
+   ambayo INAHITAJI muunganiko salama (https/localhost) na ruhusa maalum,
+   hivyo HAIFANYI kazi ukifungua faili moja kwa moja (file://) au ndani ya
+   baadhi ya "preview/webview". (B) <input type=file capture> - hufungua
+   Kamera/Picha za kawaida za simu (kama WhatsApp), hii NDIYO njia ya
+   kutegemewa zaidi kwenye mfumo huu wa Offline, hivyo ndiyo chaguo-msingi.
+   ===================================================================== */
+let camStream = null;
+let photoDataUrl = null;
+const camFrame = document.getElementById('camFrame');
+const camCanvas = document.getElementById('camCanvas');
+
+function setPhotoFromDataUrl(url){
+  photoDataUrl = url;
+  camFrame.innerHTML = `<img src="${photoDataUrl}" alt="Picha ya mwanafunzi">`;
+  document.getElementById('btnOpenCam').classList.add('hidden');
+  document.getElementById('btnPickPhoto').classList.add('hidden');
+  document.getElementById('btnSnap').classList.add('hidden');
+  document.getElementById('btnRetake').classList.remove('hidden');
+}
+
+function drawImageToSquareCanvas(imgOrVideo, srcW, srcH){
+  const ctx = camCanvas.getContext('2d');
+  const size = Math.min(srcW, srcH);
+  camCanvas.width = 320; camCanvas.height = 320;
+  ctx.drawImage(imgOrVideo, (srcW-size)/2, (srcH-size)/2, size, size, 0, 0, 320, 320);
+  return camCanvas.toDataURL('image/jpeg', 0.85);
+}
+
+/* (A) Kamera ya moja kwa moja - jaribio */
+document.getElementById('btnOpenCam').addEventListener('click', async ()=>{
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' } });
+    camFrame.innerHTML = '';
+    const video = document.createElement('video');
+    video.autoplay = true; video.playsInline = true; video.id = 'camVideo';
+    video.srcObject = camStream;
+    camFrame.appendChild(video);
+    document.getElementById('btnOpenCam').classList.add('hidden');
+    document.getElementById('btnPickPhoto').classList.add('hidden');
+    document.getElementById('btnSnap').classList.remove('hidden');
+  }catch(err){
+    // Kamera ya moja kwa moja haipatikani hapa (kawaida kwa faili la offline
+    // au ndani ya "preview"). Tumia njia mbadala (B) moja kwa moja.
+    document.getElementById('photoFileInput').click();
+  }
+});
+
+document.getElementById('btnSnap').addEventListener('click', ()=>{
+  const video = document.getElementById('camVideo');
+  const url = drawImageToSquareCanvas(video, video.videoWidth, video.videoHeight);
+  if(camStream) camStream.getTracks().forEach(t=>t.stop());
+  setPhotoFromDataUrl(url);
+});
+
+/* (B) Piga/Chagua Picha kwa kutumia Kamera/Picha za kawaida za simu */
+document.getElementById('btnPickPhoto').addEventListener('click', ()=>{
+  document.getElementById('photoFileInput').click();
+});
+document.getElementById('photoFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const url = drawImageToSquareCanvas(img, img.width, img.height);
+      setPhotoFromDataUrl(url);
+    };
+    img.onerror = ()=> Swal.fire({icon:'error', title:'Picha Haikusomeka', text:'Jaribu kuchagua picha nyingine.'});
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = ''; // ili uweze kuchagua picha ile ile tena baadaye ikihitajika
+});
+
+document.getElementById('btnRetake').addEventListener('click', ()=>{
+  photoDataUrl = null;
+  camFrame.innerHTML = '<div class="cam-placeholder" id="camPlaceholder">Hakuna picha bado</div>';
+  document.getElementById('btnRetake').classList.add('hidden');
+  document.getElementById('btnOpenCam').classList.remove('hidden');
+  document.getElementById('btnPickPhoto').classList.remove('hidden');
+});
+
+/* =====================================================================
+   SEHEMU 5: KUWASILISHA FOMU (SUBMIT) — HIFADHI, E-CARD, POP-UP
+   ===================================================================== */
+document.getElementById('regForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!validateStep(4)) return;
+
+  const courseValue = document.getElementById('course').value === 'Nyingine'
+    ? document.getElementById('otherCourse').value.trim()
+    : document.getElementById('course').value;
+
+  const candidate = {
+    regNo: val('regNo'),
+    phone1: val('phone1'),
+    email: val('email'),
+    firstName: val('firstName'),
+    lastName: val('lastName')
+  };
+
+  const duplicate = findExistingStudentCandidate(candidate);
+  if (duplicate) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Taarifa tayari ipo kwenye mfumo',
+      text: `Mwanafunzi ${candidate.firstName} ${candidate.lastName} / ${candidate.regNo} tayari amesajiliwa. Tafadhali angalia kwenye orodha au ukague data yako.`,
+      confirmButtonText: 'Sawa',
+      confirmButtonColor: '#1a7a5a'
+    });
+    return;
+  }
+
+  const student = {
+    regId: nextRegId(),
+    firstName: val('firstName'), lastName: val('lastName'),
+    gender: selections.gender,
+    dob: val('dob'),
+    regNo: val('regNo'), course: courseValue, college: val('college'), year: val('year'),
+    phone1: val('phone1'), phone2: val('phone2'), email: val('email'), address: val('address'),
+    church: val('church'), prevService: val('prevService'),
+    needChurch: selections.needChurch,
+    choir: selections.choir,
+    photo: photoDataUrl || '',
+    createdAt: new Date().toISOString(),
+    status: 'pending',
+    verifiedBy: null,
+    verifiedAt: null,
+  };
+
+  const students = getStudents();
+  students.push(student);
+  saveStudents(students);
+  if(isGoogleSheetsEnabled()){
+    await syncStudentToGoogleSheets(student);
+  }
+  addLog(session.role ? (session.role==='admin'?'Admin':'Clerk') : 'Msajili', `Alimsajili ${student.firstName} ${student.lastName} (${student.regId})`);
+
+  if(student.email){
+    const verse = getDailyVerse();
+    const message = `Mpendwa ${student.firstName},\n\nHongera kwa usajili wako kwenye TUCASA UDSM MABIBO HOSTEL(TUMH). \n\nFungu la Bibilia la leo:\n${verse.ref} - ${verse.text}\n\nKumbuka: Mungu yuko nawe, anakuongoza kila hatua. \nUwe na imani, moyo wa subira, na tumaini kwenye Bwana.\n\nTunakutakia baraka nyingi.\nTUCASA UDSM MABIBO HOSTEL(TUMH)`;
+    const mailTo = `mailto:${encodeURIComponent(student.email)}?subject=${encodeURIComponent('Fungu la Bibilia la leo - TUCASA')}&body=${encodeURIComponent(message)}`;
+    const link = document.createElement('a');
+    link.href = mailTo;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  showEcard(student, true);
+  resetForm();
+});
+
+function getDailyVerse(){
+  const seed = new Date().toDateString();
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  const index = hash % DAILY_VERSES.length;
+  return DAILY_VERSES[index];
+}
+
+function val(id){ return document.getElementById(id).value.trim(); }
+
+function resetForm(){
+  document.getElementById('regForm').reset();
+  document.querySelectorAll('.radio-pill').forEach(p=>p.classList.remove('checked'));
+  selections.gender = '';
+  selections.needChurch = '';
+  selections.choir = '';
+  document.querySelectorAll('.field select').forEach(s=>s.classList.remove('filled'));
+  document.getElementById('otherCourseField').classList.add('hidden');
+  document.getElementById('otherCourse').value = '';
+  photoDataUrl = null;
+  camFrame.innerHTML = '<div class="cam-placeholder">Hakuna picha bado</div>';
+  document.getElementById('btnRetake').classList.add('hidden');
+  document.getElementById('btnSnap').classList.add('hidden');
+  document.getElementById('btnOpenCam').classList.remove('hidden');
+  document.getElementById('btnPickPhoto').classList.remove('hidden');
+  currentStep = 0;
+  document.querySelectorAll('.field.error').forEach(f=>f.classList.remove('error'));
+  renderStep();
+}
+
+/* --- kuzalisha na kuonyesha E-CARD kwenye SweetAlert2 --- */
+function buildEcardHtml(student){
+  const validDate = new Date();
+  validDate.setFullYear(validDate.getFullYear() + 1);
+  return `
+    <div id="ecard">
+      <div class="ec-top">
+        <div class="ec-badge">TUCASA</div>
+        <div class="ec-tag">Student ID</div>
+      </div>
+      <div class="ec-body">
+        <div class="ec-photo-wrap">
+          <img class="ec-photo" src="${student.photo || ''}" onerror="this.style.opacity=0">
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div class="ec-name">${escapeHtml(student.firstName)} ${escapeHtml(student.lastName)}</div>
+          <div class="ec-course">${escapeHtml(student.course)} · ${escapeHtml(student.year)}</div>
+          <div class="ec-id">${student.regId}</div>
+          <div class="ec-meta">
+            <span class="ec-pill">${escapeHtml(student.college || 'College')}</span>
+            <span class="ec-pill">${escapeHtml(student.gender === 'Me' ? 'Mwanaume' : 'Mwanamke')}</span>
+          </div>
+        </div>
+      </div>
+      <div class="ec-info">
+        <div>
+          <div class="ec-sub">Kanisa / Parish</div>
+          <div style="font-weight:700; font-size:13px; margin-top:4px;">${escapeHtml(student.church || '—')}</div>
+        </div>
+        <div class="ec-qr" id="ecQr"></div>
+      </div>
+      <div class="ec-foot">TUCASA UDSM MABIBO HOSTEL(TUMH) · KADI YA USAJILI · INASTAHILI HADI ${validDate.toLocaleDateString('sw-TZ', {month:'short', year:'numeric'})}</div>
+    </div>`;
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function showEcard(student, celebratory){
+  const holder = document.getElementById('ecardHolder');
+  holder.innerHTML = buildEcardHtml(student);
+  try{
+    new QRCode(document.getElementById('ecQr'), {
+      text: `${student.regId}|${student.firstName} ${student.lastName}|${student.course}`,
+      width: 64, height: 64, colorDark:'#0a3d2e', colorLight:'#ffffff'
+    });
+  }catch(e){/* QRCode CDN haikupatikana - endelea bila QR */}
+
+  Swal.fire({
+    title: celebratory ? 'Hongera! Umesajiliwa 🎉' : 'E-Card ya Mwanafunzi',
+    html: `<div style="display:flex;justify-content:center;">${holder.innerHTML}</div>
+           <p style="font-size:13px;color:#5f7d70;margin-top:14px;">Namba yako ya usajili: <b>${student.regId}</b></p>`,
+    confirmButtonText: 'Pakua Kadi (PNG)',
+    confirmButtonColor: '#1a7a5a',
+    showCancelButton: true,
+    cancelButtonText: 'Funga',
+    width: 440,
+    customClass: { popup: 'swal-card-popup' }
+  }).then(res=>{
+    if(res.isConfirmed) downloadEcardPng(student);
+  });
+}
+
+function downloadEcardPng(student){
+  const holder = document.getElementById('ecardHolder');
+  holder.innerHTML = buildEcardHtml(student);
+  try{
+    new QRCode(document.getElementById('ecQr'), {
+      text: `${student.regId}|${student.firstName} ${student.lastName}|${student.course}`,
+      width: 64, height: 64, colorDark:'#0a3d2e', colorLight:'#ffffff'
+    });
+  }catch(e){}
+  setTimeout(()=>{
+    html2canvas(document.getElementById('ecard'), { backgroundColor:null, scale:2 }).then(canvas=>{
+      const a = document.createElement('a');
+      a.download = `${student.regId}-ecard.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
+  }, 150);
+}
+
+/* =====================================================================
+   SEHEMU 6: DASHIBODI YA ADMIN — JEDWALI, FILTA, TAKWIMU
+   ===================================================================== */
+let charts = { course:null, gender:null };
+
+function populateCourseFilter(){
+  const sel = document.getElementById('filterCourse');
+  const current = sel.value;
+  const courses = [...new Set(getStudents().map(s=>s.course))].sort();
+  sel.innerHTML = '<option value="">Kozi Zote</option>' + courses.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  sel.value = current;
+}
+
+function filteredStudents(){
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const fc = document.getElementById('filterCourse').value;
+  const fg = document.getElementById('filterGender').value;
+  const ft = document.getElementById('filterTime').value;
+  return getStudents().filter(s=>{
+    if(q && !(`${s.firstName} ${s.lastName}`.toLowerCase().includes(q) || s.regNo.toLowerCase().includes(q))) return false;
+    if(fc && s.course !== fc) return false;
+    if(fg && s.gender !== fg) return false;
+    if(ft){
+      const hr = new Date(s.createdAt).getHours();
+      const isMorning = hr < 12;
+      if(ft === 'asubuhi' && !isMorning) return false;
+      if(ft === 'alasiri' && isMorning) return false;
+    }
+    return true;
+  }).sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+function renderAdmin(){
+  loadGoogleSheetsConfig();
+  document.getElementById('roleBadge').textContent = session.role === 'admin' ? 'Admin (Super)' : 'Clerk (Msajili)';
+  const clerkBtn = document.getElementById('btnToggleClerkAccess');
+  if (clerkBtn) {
+    const approved = isClerkApproved();
+    clerkBtn.textContent = approved ? '🚫 Zuia Clerk' : '✅ Ruhusu Clerk';
+  }
+  populateCourseFilter();
+  renderStats();
+  renderCharts();
+  renderTable();
+  renderLogs();
+}
+
+function renderStats(){
+  const all = getStudents();
+  const approved = all.filter(s=>s.status === 'verified').length;
+  const pending = all.filter(s=>s.status !== 'verified').length;
+  const male = all.filter(s=>s.gender==='Me').length;
+  const female = all.filter(s=>s.gender==='Ke').length;
+  document.getElementById('statTotal').textContent = all.length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statApproved').textContent = approved;
+  document.getElementById('statMale').textContent = male;
+
+  const clerkStatus = document.getElementById('clerkAccessStatus');
+  if (clerkStatus) {
+    const approvedName = getApprovedClerkName();
+    clerkStatus.textContent = isClerkApproved() ? `Clerk: ${approvedName}` : 'Clerk: Imezuiwa';
+    clerkStatus.style.background = isClerkApproved() ? '#eafaf3' : '#fff4d9';
+    clerkStatus.style.color = isClerkApproved() ? '#11614a' : '#7a5a00';
+  }
+  const statFemale = document.getElementById('statFemale');
+  if (statFemale) statFemale.textContent = female;
+}
+
+function renderCharts(){
+  const all = getStudents();
+  const courseCounts = {};
+  all.forEach(s=> courseCounts[s.course] = (courseCounts[s.course]||0)+1);
+  const genderCounts = { Me: all.filter(s=>s.gender==='Me').length, Ke: all.filter(s=>s.gender==='Ke').length };
+
+  if(charts.course) charts.course.destroy();
+  if(charts.gender) charts.gender.destroy();
+
+  charts.course = new Chart(document.getElementById('chartCourse'), {
+    type:'bar',
+    data:{ labels:Object.keys(courseCounts), datasets:[{ label:'Wanafunzi', data:Object.values(courseCounts), backgroundColor:'#1a7a5a', borderRadius:6 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, title:{display:true, text:'Mgawanyo kwa Kozi'} }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } }
+  });
+  charts.gender = new Chart(document.getElementById('chartGender'), {
+    type:'pie',
+    data:{ labels:['Wanaume','Wanawake'], datasets:[{ data:[genderCounts.Me, genderCounts.Ke], backgroundColor:['#0a3d2e','#FFD700'] }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Mgawanyo kwa Jinsia'} } }
+  });
+}
+
+function renderTable(){
+  const list = filteredStudents();
+  const body = document.getElementById('studentsBody');
+  const isAdmin = session.role === 'admin';
+  document.getElementById('emptyState').classList.toggle('hidden', list.length>0);
+
+  body.innerHTML = list.map(s => {
+    const status = (s.status === 'verified') ? 'verified' : 'pending';
+    const statusLabel = (s.status === 'verified') ? 'Imethibitishwa' : 'Inasubiri uthibitisho';
+    return `
+    <tr data-id="${s.regId}">
+      <td>${s.photo ? `<img class="avatar-sm" src="${s.photo}">` : `<div class="avatar-sm"></div>`}</td>
+      <td><b>${s.regId}</b></td>
+      <td>${escapeHtml(s.firstName)} ${escapeHtml(s.lastName)}</td>
+      <td>${escapeHtml(s.course)}</td>
+      <td>${escapeHtml(s.phone1)}</td>
+      <td>${new Date(s.createdAt).toLocaleDateString('sw-TZ')}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="status-pill status-${status}">${statusLabel}</span>
+          <button class="icon-btn" title="Angalia E-Card" data-act="view" data-id="${s.regId}">🪪</button>
+          ${isAdmin ? `<button class="icon-btn" title="Hariri" data-act="edit" data-id="${s.regId}">✏️</button>
+          <button class="icon-btn" title="Thibitisha" data-act="verify" data-id="${s.regId}">✅</button>
+          <button class="icon-btn danger" title="Futa" data-act="del" data-id="${s.regId}">🗑️</button>` : ''}
+        </div>
+      </td>
+    </tr>
+  `;
+  }).join('');
+}
+
+['searchBox'].forEach(id=> document.getElementById(id).addEventListener('input', renderTable));
+['filterCourse','filterGender','filterTime'].forEach(id=> document.getElementById(id).addEventListener('change', renderTable));
+
+document.getElementById('studentsBody').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  const id = btn.dataset.id;
+  const student = getStudents().find(s=>s.regId===id);
+  if(!student) return;
+  if(btn.dataset.act === 'view') showEcard(student, false);
+  if(btn.dataset.act === 'edit') openEditModal(student);
+  if(btn.dataset.act === 'verify') verifyStudent(student);
+  if(btn.dataset.act === 'del') deleteStudent(student);
+});
+
+function verifyStudent(student){
+  const students = getStudents();
+  const item = students.find(s => s.regId === student.regId);
+  if(!item) return;
+  item.status = 'verified';
+  item.verifiedBy = 'admin';
+  item.verifiedAt = new Date().toISOString();
+  saveStudents(students);
+  addLog('Admin', `Aliithibitisha rekodi ya ${item.firstName} ${item.lastName} (${item.regId})`);
+  renderAdmin();
+  Swal.fire({ icon:'success', title:'Rekodi Imethibitishwa', text:`${item.firstName} ${item.lastName} amekubaliwa kwa usajili.`, timer:1500, showConfirmButton:false });
+}
+
+function deleteStudent(student){
+  Swal.fire({
+    icon:'warning', title:'Futa Rekodi?',
+    text:`Una uhakika unataka kufuta rekodi ya ${student.firstName} ${student.lastName} (${student.regId})? Kitendo hiki hakiwezi kutenduliwa.`,
+    showCancelButton:true, confirmButtonText:'Ndiyo, Futa', cancelButtonText:'Ghairi', confirmButtonColor:'#c0392b'
+  }).then(async (res)=>{
+    if(!res.isConfirmed) return;
+    const remaining = getStudents().filter(s=>s.regId !== student.regId);
+    saveStudents(remaining);
+    if(isGoogleSheetsEnabled()){
+      await deleteStudentFromGoogleSheets(student.regId);
+    }
+    addLog('Admin', `Alifuta rekodi ya ${student.firstName} ${student.lastName} (${student.regId})`);
+    renderAdmin();
+    Swal.fire({ icon:'success', title:'Imefutwa', timer:1300, showConfirmButton:false });
+  });
+}
+
+/* --- MODAL YA KUHARIRI --- */
+const editModal = document.getElementById('editModal');
+let editingId = null;
+const EDIT_FIELDS = [
+  ['firstName','Jina la Kwanza','text'], ['lastName','Jina la Ukoo','text'],
+  ['regNo','Namba ya Mtihani','text'], ['course','Kozi','text'], ['college','Chuo','text'],
+  ['year','Mwaka wa Masomo','text'], ['phone1','Simu Binafsi','text'], ['phone2','Simu Mbadala','text'],
+  ['email','Barua Pepe','text'], ['church','Kanisa','text'],
+];
+function openEditModal(student){
+  editingId = student.regId;
+  document.getElementById('editFields').innerHTML = EDIT_FIELDS.map(([key,label])=>`
+    <div class="field">
+      <input type="text" id="edit_${key}" value="${escapeHtml(student[key]||'')}" placeholder=" ">
+      <label for="edit_${key}">${label}</label>
+    </div>
+  `).join('');
+  editModal.classList.remove('hidden');
+}
+document.getElementById('btnCancelEdit').addEventListener('click', ()=> editModal.classList.add('hidden'));
+document.getElementById('btnSaveEdit').addEventListener('click', async ()=>{
+  const students = getStudents();
+  const idx = students.findIndex(s=>s.regId===editingId);
+  if(idx === -1) return;
+  EDIT_FIELDS.forEach(([key])=>{
+    students[idx][key] = document.getElementById(`edit_${key}`).value.trim();
+  });
+  saveStudents(students);
+  if(isGoogleSheetsEnabled()){
+    await updateStudentInGoogleSheets(students[idx]);
+  }
+  addLog('Admin', `Alihariri rekodi ya ${students[idx].firstName} ${students[idx].lastName} (${students[idx].regId})`);
+  editModal.classList.add('hidden');
+  renderAdmin();
+  Swal.fire({ icon:'success', title:'Mabadiliko Yamehifadhiwa', timer:1200, showConfirmButton:false });
+});
+
+/* --- AUDIT LOG --- */
+function renderLogs(){
+  const logs = pruneExpiredLogs();
+  const list = document.getElementById('logList');
+  if(!logs.length){ list.innerHTML = '<div class="empty-state">Bado hakuna kumbukumbu za saa 24 zilizopita.</div>'; return; }
+  list.innerHTML = logs.map(l=>`
+    <div class="log-item">
+      <div class="log-time">${fmtTime(l.time)}</div>
+      <div><span class="log-actor">${escapeHtml(l.actor)}</span> — ${escapeHtml(l.action)}</div>
+    </div>
+  `).join('');
+}
+
+/* --- EXPORT CSV --- */
+document.getElementById('btnExportCsv').addEventListener('click', ()=>{
+  const all = getStudents();
+  if(!all.length){ Swal.fire({icon:'info', title:'Hakuna Data ya Kuhamisha'}); return; }
+  const headers = ['regId','firstName','lastName','gender','dob','regNo','course','college','year','phone1','phone2','email','address','church','prevService','needChurch','choir','createdAt'];
+  const rows = all.map(s => headers.map(h => `"${String(s[h]??'').replace(/"/g,'""')}"`).join(','));
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tucasa_wanafunzi_${Date.now()}.csv`;
+  a.click();
+  addLog(session.role==='admin'?'Admin':'Clerk', 'Alihamisha (export) data kwenda CSV');
+});
+
+/* --- BACKUP JSON --- */
+document.getElementById('btnBackupJson').addEventListener('click', ()=>{
+  const payload = { students: getStudents(), logs: getLogs(), counter: readStoredValue(LS_COUNTER, '0') || '0' };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tucasa_backup_${Date.now()}.json`;
+  a.click();
+  addLog(session.role==='admin'?'Admin':'Clerk', 'Alifanya Backup ya data (JSON)');
+});
+
+/* --- RESTORE JSON --- */
+document.getElementById('btnRestoreJson').addEventListener('click', ()=> document.getElementById('restoreInput').click());
+document.getElementById('restoreInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      Swal.fire({
+        icon:'warning', title:'Rejesha Data?',
+        text:'Kitendo hiki kitabadilisha data iliyopo kwa data ya faili hili la backup. Endelea?',
+        showCancelButton:true, confirmButtonText:'Ndiyo, Rejesha', cancelButtonText:'Ghairi'
+      }).then(res=>{
+        if(!res.isConfirmed) return;
+        const safeData = sanitizeBackupObject(data);
+        if(Array.isArray(safeData.students)) saveStudents(safeData.students);
+        if(Array.isArray(safeData.logs)) saveLogs(safeData.logs);
+        if(safeData.counter) writeStoredValue(LS_COUNTER, String(safeData.counter));
+        addLog('Admin', 'Alirejesha (restore) data kutoka faili la Backup');
+        renderAdmin();
+        Swal.fire({icon:'success', title:'Data Imerejeshwa'});
+      });
+    }catch(err){
+      Swal.fire({icon:'error', title:'Faili si Sahihi', text:'Hakikisha umepakia faili sahihi la JSON la Backup.'});
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+/* =====================================================================
+   ANZIA
+   ===================================================================== */
+initLargeDatabase().then(async () => {
+  if(isGoogleSheetsEnabled()){
+    const remoteStudents = await loadStudentsFromGoogleSheets();
+    if(remoteStudents.length){
+      saveStudents(remoteStudents);
+    }
+  }
+  pruneExpiredLogs();
+  applyBrandLogo('');
+  renderStep();
+  showView('login');
+});
+
+/* --- Sajili Service Worker ili App ifanye kazi Offline kama App halisi --- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{/* endelea hata kama SW haijasajiliwa (mfano ukifungua kwa file://) */});
+  });
+}
+</script>
+</body>
+</html>
